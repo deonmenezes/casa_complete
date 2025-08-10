@@ -1,0 +1,204 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mobile-first responsive container for desktop */
+@layer base {
+  html {
+    @apply bg-gray-900;
+  }
+  
+  body {
+    @apply bg-gray-900 text-white;
+  }
+}
+
+/* Desktop mobile-like layout */
+@media (min-width: 768px) {
+  #root {
+    max-width: 414px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #111827; /* gray-900 */
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    position: relative;
+  }
+  
+  /* Ensure mobile patterns are preserved */
+  .mobile-container {
+    width: 100%;
+    max-width: 414px;
+    margin: 0 auto;
+  }
+  
+  /* Touch-friendly button sizes maintained */
+  button, .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Preserve mobile typography scaling */
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  /* Maintain mobile spacing patterns */
+  .mobile-spacing {
+    padding: 1rem;
+  }
+  
+  /* Ensure images remain responsive within constrained width */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Preserve mobile navigation patterns */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 414px;
+  }
+  
+  .top-bar {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 414px;
+    z-index: 50;
+  }
+}
+
+/* Large desktop screens - maintain mobile width */
+@media (min-width: 1024px) {
+  #root {
+    max-width: 414px;
+    box-shadow: 0 0 80px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Extra large screens - add subtle background pattern */
+@media (min-width: 1440px) {
+  body {
+    background: 
+      radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(147, 51, 234, 0.1) 0%, transparent 50%),
+      #111827;
+  }
+  
+  #root {
+    box-shadow: 
+      0 0 100px rgba(0, 0, 0, 0.8),
+      0 0 200px rgba(59, 130, 246, 0.1);
+  }
+}
+
+/* Ensure touch interactions work with mouse */
+@media (hover: hover) {
+  button:hover, .btn:hover {
+    transform: scale(1.02);
+    transition: transform 0.2s ease;
+  }
+}
+
+/* Preserve mobile scroll behavior */
+.mobile-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile-style focus indicators for keyboard navigation */
+button:focus, .btn:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Ensure swipe gestures remain functional */
+.swipeable {
+  touch-action: pan-x;
+  user-select: none;
+}
+
+/* Mobile-first grid patterns maintained */
+.mobile-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .mobile-grid {
+    grid-template-columns: 1fr; /* Keep single column even on desktop */
+  }
+}
+
+/* Login popup animations */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Tinder Card Styles */
+.tinder-card {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  background-size: cover;
+  background-position: center;
+  cursor: grab;
+  user-select: none;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+}
+
+.tinder-card:active {
+  cursor: grabbing;
+}
+
+/* FIX: Removed the 'opacity' property from the rules below.
+  This was causing the "glass effect" by making the cards in the stack
+  semi-transparent and showing through each other.
+*/
+.tinder-card:nth-child(2) {
+  transform: scale(0.95) translateY(10px);
+}
+
+.tinder-card:nth-child(3) {
+  transform: scale(0.9) translateY(20px);
+}
+
+.tinder-card:nth-child(n+4) {
+  transform: scale(0.85) translateY(30px);
+}
+
+.black-text{
+  color: black
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden; /* always hide x-scroll globally */
+}
+
+body.scroll-locked {
+  overflow: hidden; /* used only for Swipe page */
+}
+

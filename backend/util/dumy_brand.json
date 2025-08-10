@@ -1,0 +1,22 @@
+[
+  {
+    "logo_url": ["https://dummyimage.com/500x500/000/fff.png&text=Brand+1"],
+    "brand": "Bluorng"
+  },
+  {
+    "logo_url": ["https://dummyimage.com/500x500/000/fff.png&text=Brand+2"],
+    "brand": "Essentials"
+  },
+  {
+    "logo_url": ["https://dummyimage.com/500x500/000/fff.png&text=Brand+3"],
+    "brand": "Deadbear"
+  },
+  {
+    "logo_url": ["https://dummyimage.com/500x500/000/fff.png&text=Brand+4"],
+    "brand": "Evemen"
+  },
+  {
+    "logo_url": ["https://dummyimage.com/500x500/000/fff.png&text=Brand+5"],
+    "brand": "Odd Not Even"
+  }
+]

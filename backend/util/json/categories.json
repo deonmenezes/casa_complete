@@ -1,0 +1,234 @@
+[
+  {
+    "_id": "68821e41ce5563ea9b11ddfc",
+    "name": "Pants",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "68821e41ce5563ea9b11ddff",
+    "name": "T-Shirts",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "68821e41ce5563ea9b11de02",
+    "name": "Hoodies",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "68821e41ce5563ea9b11de05",
+    "name": "Shorts",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "68821e41ce5563ea9b11de08",
+    "name": "Jackets",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888a425b6dd553472596f98",
+    "name": "Dresses",
+    "image": "https://images.pexels.com/photos/1055691/pexels-photo-1055691.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888a425b6dd553472596f9b",
+    "name": "Tops",
+    "image": "https://images.pexels.com/photos/1485781/pexels-photo-1485781.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888a425b6dd553472596f9e",
+    "name": "Kurtis",
+    "image": "https://images.pexels.com/photos/30809730/pexels-photo-30809730.jpeg?_gl=1*i5oa5l*_ga*Njk1MTk5MTQyLjE3NTM3NjY0NDk.*_ga_8JE65Q40S6*czE3NTM3NjY0NDkkbzEkZzEkdDE3NTM3NjY0NjMkajQ2JGwwJGgw",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888a425b6dd553472596fa1",
+    "name": "Bodysuits",
+    "image": "https://m.media-amazon.com/images/I/51SHEo-ZtFL._SY741_.jpg",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888a425b6dd553472596fa4",
+    "name": "Handbags",
+    "image": "https://images.pexels.com/photos/904350/pexels-photo-904350.jpeg?_gl=1*1djd0q0*_ga*Njk1MTk5MTQyLjE3NTM3NjY0NDk.*_ga_8JE65Q40S6*czE3NTM3NjY0NDkkbzEkZzEkdDE3NTM3NjY2NjMkajU0JGwwJGgw",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888a425b6dd553472596fa7",
+    "name": "Sunglasses",
+    "image": "https://images.pexels.com/photos/701877/pexels-photo-701877.jpeg?_gl=1*1h2e40p*_ga*Njk1MTk5MTQyLjE3NTM3NjY0NDk.*_ga_8JE65Q40S6*czE3NTM3NjY0NDkkbzEkZzEkdDE3NTM3NjY4NjIkajQwJGwwJGgw",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888a425b6dd553472596faa",
+    "name": "Earrings",
+    "image": "https://images.pexels.com/photos/2876035/pexels-photo-2876035.jpeg?_gl=1*v3nanu*_ga*Njk1MTk5MTQyLjE3NTM3NjY0NDk.*_ga_8JE65Q40S6*czE3NTM3NjY0NDkkbzEkZzEkdDE3NTM3NjY5NjgkajU5JGwwJGgw",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888a425b6dd553472596fad",
+    "name": "Necklace",
+    "image": "https://images.pexels.com/photos/39648/lady-black-dress-jewellery-dress-39648.jpeg?_gl=1*p6imp8*_ga*Njk1MTk5MTQyLjE3NTM3NjY0NDk.*_ga_8JE65Q40S6*czE3NTM3NjY0NDkkbzEkZzEkdDE3NTM3NjcwNzMkajQxJGwwJGgw",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888f9ea41c4f422875094ca",
+    "name": "All Eyez On Me Men Oversized Printed T-Shirt",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888f9ea41c4f422875094cd",
+    "name": "Off-White Stripes Slim Fit Luxe Shirt",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888f9ea41c4f422875094d0",
+    "name": "Denim: Slate Blue (Slim Fit)",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888f9ea41c4f422875094d3",
+    "name": "Unisex Baggy Fit Orange Parachute Cargo Trousers",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888f9ea41c4f422875094d6",
+    "name": "Men's The Rugged Aviator Sunglasses - Champayne Gold",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888f9ea41c4f422875094d9",
+    "name": "The Bijou Round Watch - Metallic Silver",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888f9ea41c4f422875094dc",
+    "name": "Honored Style Layered Chain",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "6888f9ea41c4f422875094df",
+    "name": "Sacred OM Gold Band",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688a59f1589e6acf43fbf4fb",
+    "name": "dresses",
+    "image": "https://via.placeholder.com/150",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688a59f1589e6acf43fbf501",
+    "name": "tops",
+    "image": "https://via.placeholder.com/150",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688a59f1589e6acf43fbf507",
+    "name": "kurtis",
+    "image": "https://via.placeholder.com/150",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688a59f2589e6acf43fbf50d",
+    "name": "bodysuits",
+    "image": "https://via.placeholder.com/150",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688a59f2589e6acf43fbf517",
+    "name": "earrings",
+    "image": "https://via.placeholder.com/150",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688a59f2589e6acf43fbf51d",
+    "name": "necklace",
+    "image": "https://www.orra.co.in/media/catalog/product/cache/10238651d5f95594b9023f998383bb67/o/s/osn20028_1.jpg",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688b11c010d092c3de29b340",
+    "name": "Oversized T-shirt",
+    "image": "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTgZ4CNW-j4dmdBxVCufn9_Mth-G2PMUWG86UfvrXo7bLDktVoYCQqxkc8UhKcVSOI_e_mFwLST8L31isaoVR4dfpl6pW1ZFTd7eexw3Nt0rKmAIZv2Kywrjn_eYmcUeVCXQkOW7jylyzRB&usqp=CAc",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688b11c010d092c3de29b343",
+    "name": "Shirt",
+    "image": "https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRNO9fUr5qNxVJSWnW-4Kk7GX7mPXktHidHp1F_xXS519toFIkOSQHZhD5pBy9MtI7Ex6F3D27FCRuFnSXNNuyaaPgEgZwQkngwpsrTycDC-i33ecso0ba5",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688b11c010d092c3de29b346",
+    "name": "Jeans",
+    "image": "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSTmz9Wc3g0iresgYMG0KzdmDBMh_dRvM8LouD8By-sspKtNAac3J1tULMl5nXPfL5VMMt0yQg36sex4a5WsvzR8q_8Bq_6BUog8HJ60xA",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688b11c010d092c3de29b349",
+    "name": "Cargos & Parachutes",
+    "image": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQcx2QmpdrmCFW8CIBj_e0MC9WE0eYq_a86mx_wHifhp6LEBMucsRGdnBTW8kSVateryMROOPSfNQvBJ3F4r8yB1miJOJL7d4mGm9eIz4Jf1N32aibYCuVNIQ&usqp=CAc",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688b11c010d092c3de29b34d",
+    "name": "watches",
+    "image": "https://confidentialcouture.com/cdn/shop/files/CCAPJUN25239_1024x1024.webp?v=1751544522",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688b11c010d092c3de29b351",
+    "name": "bracelets",
+    "image": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcR4LXzoIHINvl15ar-q3IJmoYVs9Sv2sryHfU-gX7He-HStZMz41yMAWLDL0hqfMVcWC50ULj8OuTCmIPIRcjiPNom4Se8_lqcAZsew9cMhHuWMjmUVBqWhvWnDWc3FcQ5yMq2XK0IEVg&usqp=CAc",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688b36015836788569970a1a",
+    "name": "sunglasses",
+    "image": "https://image.hm.com/assets/hm/5e/6d/5e6d71668f8a498e3808bd01db5fe69895b19e57.jpg?imwidth=768",
+    "parentCategory": null,
+    "__v": 0
+  },
+  {
+    "_id": "688b36015836788569970a1d",
+    "name": "Watches",
+    "image": "https://confidentialcouture.com/cdn/shop/files/CCAPJUN25239_1024x1024.webp?v=1751544522",
+    "parentCategory": null,
+    "__v": 0
+  }
+]
