@@ -232,23 +232,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="bg-gray-900 text-white min-h-screen pb-32">
       {/* Top Header */}
-      <div className="px-4 py-3 border-b border-gray-800">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-1">
-            <MapPin size={16} className="text-blue-400" />
-            <span className="text-sm">Delivery in <span className="text-blue-400 font-semibold">60 minutes</span></span>
-          </div>
-          <div className="flex items-center space-x-3">
-            <button onClick={() => navigate('/search')} className="p-1">
-              <Search size={20} className="text-white hover:text-blue-400 transition-colors" />
-            </button>
-
-            <button onClick={() => navigate('/profile')} className="p-1">
-              <User size={20} className="text-white hover:text-blue-400 transition-colors" />
-            </button>
-          </div>
-        </div>
-      </div>
+  
 
       {/* User Selection */}
       <div className="flex items-center justify-center space-x-4 px-4 py-4">
