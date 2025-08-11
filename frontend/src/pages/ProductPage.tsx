@@ -1,53 +1,76 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Share, Search, ShoppingBag, Shield, RotateCcw, Sparkles, ChevronRight } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 
-import { ArrowLeft, Share, Search, ShoppingBag, Shield, RotateCcw, Sparkles, ChevronRight } from 'lucide-react';
+interface Product {
+  _id: string;
+  name: string;
+  description?: string;
+  price: number | { $numberDecimal: string };
+  currency: string;
+  images: string[];
+  brand: {
+    _id: string;
+    name: string;
+    logo_url?: string;
+  };
+  category: {
+    _id: string;
+    name: string;
+  };
+  tags: string[];
+  gender: string;
+  sizes?: string[]; // Assuming products might not always have sizes
+  stock: { [key: string]: number }; // Assuming stock is an object with size keys and number values
+  specifications?: {
+    pattern?: string;
+    length?: string;
+    fabric?: string;
+    sleeveLength?: string;
+    fit?: string;
+    distress?: string;
+    [key: string]: string | undefined; // Allow for other string-based specifications
+  };
+}
 
 const ProductPage: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>(); // Specify type for useParams
   const navigate = useNavigate();
+  // Removed wishlist context and hooks
   const { addToCart } = useCart();
 
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [selectedSize, setSelectedSize] = useState<string>('L');
+  const [selectedSize, setSelectedSize] = useState<string>(''); // Changed default to empty
   const [activeTab, setActiveTab] = useState<'SPECIFICATION' | 'DESCRIPTION'>('SPECIFICATION');
 
   // Swipe state
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  // const [product, setProduct] = useState();
 
 
+  useEffect(() => {
+    if (id) {
+      fetchProduct(id);
+    }
+  }, [id]);
 
-  // Mock product data
-  const product = {
-    id: id || '1',
-    name: 'Bunny Time Hoodie',
-    brand: 'Bonkers Corner',
-    price: '₹1,899',
-    originalPrice: '₹2,499',
-    discount: '24% off',
-    images: [
-      'https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=600',
-      'https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=600',
-      'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=600',
-      'https://images.pexels.com/photos/298863/pexels-photo-298863.jpeg?auto=compress&cs=tinysrgb&w=600',
-    ],
-    description: 'Premium quality hoodie with comfortable fit and modern design.',
-    sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    colors: ['Beige', 'Black', 'White', 'Navy'],
-    specifications: {
-      pattern: 'Graphic',
-      length: 'Full',
-      fabric: 'Cotton',
-      sleeveLength: 'Full Sleeves',
-      fit: 'Oversized',
-      distress: 'Clean Look'
-    },
-    stock: {
-      L: 2
+  const fetchProduct = async (id: string) => {
+    try {
+      const response = await fetch(`http://localhost:5002/api/products/id/${id}`);
+      const data: Product = await response.json(); // Explicitly type data
+      setProduct(data);
+      // Set a default selected size if product has sizes and no size is pre-selected
+      if (data.sizes && data.sizes.length > 0 && !selectedSize) {
+        setSelectedSize(data.sizes[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,14 +80,28 @@ const ProductPage: React.FC = () => {
 
   const handleBuyNow = () => {
     if (!selectedSize) {
-      // In a real app, you'd use a modal or a toast notification here.
+      alert('Please select a size'); // Using alert for simplicity
       console.error('Please select a size');
       return;
     }
-    console.log('Buy Now clicked for product:', product.id, { size: selectedSize });
+    if (!product) {
+      console.error('Product not loaded');
+      return;
+    }
+    console.log('Buy Now clicked for product:', product, { size: selectedSize });
     navigate('/checkout', {
       state: {
-        product: { ...product, selectedSize },
+        product: {
+          id: product._id,
+          name: product.name,
+          brand: product.brand.name,
+          price: typeof product.price === 'object' && product.price !== null && '$numberDecimal' in product.price
+          ? product.price.$numberDecimal
+          : product.price,
+          images: product.images[0],
+          selectedSize: selectedSize,
+          quantity: 1
+        },
         directBuy: true
       }
     });
@@ -72,29 +109,39 @@ const ProductPage: React.FC = () => {
 
   const handleAddToBag = async () => {
     if (!selectedSize) {
+      alert('Please select a size'); // Using alert for simplicity
       console.error('Please select a size');
       return;
     }
 
+    if (!product) {
+      console.error('Product not loaded');
+      return;
+    }
     try {
       console.log('🛒 Adding to bag:', product.name, { size: selectedSize });
-      await addToCart(product.id, 1, selectedSize);
+      await addToCart(product._id, 1, selectedSize);
       console.log('✅ Product added to bag successfully');
       navigate('/bag');
     } catch (error) {
       console.error('❌ Error adding to bag:', error);
+      alert('Failed to add product to bag. Please try again.');
     }
   };
 
+  // Removed handleFavorite function
 
-
-  // Swipe handlers
+  // Swipe handlers (no changes here, they look correct for the logic)
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
     const touch = e.touches[0];
     setStartX(touch.clientX);
     setIsDragging(true);
     setSwipeOffset(0);
+  };
+
+  const handleSizeSelect = (size: string) => {
+    setSelectedSize(size);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -104,7 +151,6 @@ const ProductPage: React.FC = () => {
     const touch = e.touches[0];
     const currentX = touch.clientX;
     const diff = currentX - startX;
-    // Allow full swipe range - approximately 150px to each side for better reach
     const newOffset = Math.max(-150, Math.min(150, diff));
     setSwipeOffset(newOffset);
   };
@@ -113,17 +159,14 @@ const ProductPage: React.FC = () => {
     if (!isDragging) return;
     e.preventDefault();
 
-    const fullSwipeThreshold = 120; // Require significant swipe
+    const fullSwipeThreshold = 120;
 
     if (swipeOffset <= -fullSwipeThreshold) {
-      // Full left swipe - Buy Now
       handleBuyNow();
     } else if (swipeOffset >= fullSwipeThreshold) {
-      // Full right swipe - Add to Bag
       handleAddToBag();
     }
 
-    // Reset state
     setSwipeOffset(0);
     setIsDragging(false);
   };
@@ -157,34 +200,31 @@ const ProductPage: React.FC = () => {
         handleAddToBag();
       }
 
-      // Reset state
       setSwipeOffset(0);
       setIsDragging(false);
       dragging = false;
 
-      // Clean up global listeners
       document.removeEventListener('mousemove', handleGlobalMouseMove);
       document.removeEventListener('mouseup', handleGlobalMouseUp);
     };
 
-    // Add global listeners
     document.addEventListener('mousemove', handleGlobalMouseMove);
     document.addEventListener('mouseup', handleGlobalMouseUp);
   };
-
-
 
   const handleThumbnailClick = (index: number) => {
     setCurrentImageIndex(index);
   };
 
-  return (
-    // This is the main screen container. It centers the content and provides a relative
-    // positioning context for the absolute-positioned action bar.
-    <div className="relative max-w-md mx-auto min-h-screen bg-gray-900 text-white overflow-x-hidden">
+  if (loading) return <div className="min-h-screen bg-gray-900 text-white p-8">Loading...</div>;
+  if (!product) return <div className="min-h-screen bg-gray-900 text-white p-8">Product not found.</div>;
 
-      {/* This wrapper holds all the scrollable content.
-          The bottom padding prevents the content from being hidden by the action bar. */}
+  const price = typeof product.price === 'object' && product.price !== null && '$numberDecimal' in product.price
+    ? product.price.$numberDecimal
+    : product.price;
+
+  return (
+    <div className="relative max-w-md mx-auto min-h-screen bg-gray-900 text-white overflow-x-hidden">
       <div className="pb-24">
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-gray-900">
@@ -199,6 +239,7 @@ const ProductPage: React.FC = () => {
           </div>
           <div className="flex items-center space-x-4">
             <Search className="w-6 h-6 text-white" />
+            {/* Removed the Heart button for wishlist */}
             <ShoppingBag className="w-6 h-6 text-white" />
           </div>
         </div>
@@ -216,7 +257,7 @@ const ProductPage: React.FC = () => {
             <div className="absolute bottom-4 right-4 z-10 bg-black bg-opacity-60 text-white p-2 rounded-full">
               <Share className="w-5 h-5" />
             </div>
-
+            {/* Removed the Heart button from the main image */}
             <img
               src={product.images[currentImageIndex]}
               alt={product.name}
@@ -250,11 +291,11 @@ const ProductPage: React.FC = () => {
         <div className="p-4 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">{product.brand}</h1>
+              <h1 className="text-2xl font-bold text-white">{product.brand.name}</h1>
               <p className="text-gray-400">{product.name}</p>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-bold text-white">{product.price}</span>
+              <span className="text-2xl font-bold text-white">{product.currency}{price}</span>
             </div>
           </div>
 
@@ -265,10 +306,10 @@ const ProductPage: React.FC = () => {
               <button className="text-white underline text-sm">size chart</button>
             </div>
             <div className="flex space-x-3 mb-2">
-              {product.sizes.map((size) => (
+              {product.sizes?.map((size) => ( // Use optional chaining for sizes
                 <button
                   key={size}
-                  onClick={() => setSelectedSize(size)}
+                  onClick={() => handleSizeSelect(size)}
                   className={`px-4 py-2 border rounded-lg transition-colors ${
                     selectedSize === size
                       ? 'border-white bg-white text-black'
@@ -279,8 +320,9 @@ const ProductPage: React.FC = () => {
                 </button>
               ))}
             </div>
-            {product.stock.L && selectedSize === 'L' && (
-              <p className="text-sm text-red-400">⚡ {product.stock.L} left</p>
+            {/* Conditional rendering for stock, ensure product.stock exists and the size exists in stock */}
+            {product.stock && selectedSize && product.stock[selectedSize] !== undefined && (
+              <p className="text-sm text-red-400">⚡ {product.stock[selectedSize]} left</p>
             )}
           </div>
 
@@ -312,29 +354,30 @@ const ProductPage: React.FC = () => {
             <div className="pt-4">
               {activeTab === 'SPECIFICATION' && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                  {/* Use optional chaining for specifications */}
                   <div>
                     <p className="text-gray-400">Pattern</p>
-                    <p className="text-white font-medium">{product.specifications.pattern}</p>
+                    <p className="text-white font-medium">{product.specifications?.pattern}</p>
                   </div>
                   <div>
                     <p className="text-gray-400">Length</p>
-                    <p className="text-white font-medium">{product.specifications.length}</p>
+                    <p className="text-white font-medium">{product.specifications?.length}</p>
                   </div>
                   <div>
                     <p className="text-gray-400">Fabric</p>
-                    <p className="text-white font-medium">{product.specifications.fabric}</p>
+                    <p className="text-white font-medium">{product.specifications?.fabric}</p>
                   </div>
                   <div>
                     <p className="text-gray-400">Sleeve length</p>
-                    <p className="text-white font-medium">{product.specifications.sleeveLength}</p>
+                    <p className="text-white font-medium">{product.specifications?.sleeveLength}</p>
                   </div>
                   <div>
                     <p className="text-gray-400">Fit</p>
-                    <p className="text-white font-medium">{product.specifications.fit}</p>
+                    <p className="text-white font-medium">{product.specifications?.fit}</p>
                   </div>
                   <div>
                     <p className="text-gray-400">Distress</p>
-                    <p className="text-white font-medium">{product.specifications.distress}</p>
+                    <p className="text-white font-medium">{product.specifications?.distress}</p>
                   </div>
                 </div>
               )}

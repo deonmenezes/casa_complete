@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -18,11 +17,14 @@ import {
 } from 'lucide-react';
 import LoginPopup from '../components/LoginPopup';
 import { useUser } from '../contexts/UserContext';
+import axios from 'axios';
+
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(false);
+  const [orderCount, setOrderCount] = useState(0);
   // ENHANCED USER CONTEXT: Now uses logout function and displays collected user details
   const { userData, logout } = useUser();
   const isLoggedIn = userData.isLoggedIn;
@@ -77,14 +79,14 @@ const ProfilePage: React.FC = () => {
       // NAVIGATION: Navigate to appropriate pages
       switch (label) {
         case 'My Orders':
-          navigate('/order-success'); // Placeholder - shows order success page
+          navigate('/my-orders');
           break;
 
         case 'Manage Account':
           navigate('/manage-account'); // NEW: Navigate to manage account page
           break;
         case 'Help & Query':
-          setIsChatVisible(true); // ✅ show chatbot
+          navigate('/chat', { state: { autoMessage: true } }); // ✅ NEW: triggers auto-reply
           break;
         case 'Refer & Earn':
           navigate('/'); // Placeholder - redirect to home
@@ -109,6 +111,24 @@ const ProfilePage: React.FC = () => {
     setIsLoginPopupOpen(false);
     // Here you would typically make an API call to send OTP
   };
+
+  // Fetch order count when user is logged in
+  useEffect(() => {
+    const fetchOrderCount = async () => {
+      if (isLoggedIn && userData._id) {
+        try {
+          const response = await axios.get(`http://localhost:5002/api/orders/user/${userData._id}`);
+          if (response.data.success) {
+            setOrderCount(response.data.orders.length);
+          }
+        } catch (error) {
+          console.error('Error fetching order count:', error);
+        }
+      }
+    };
+
+    fetchOrderCount();
+  }, [isLoggedIn, userData._id]);
 
   return (
     <div className="bg-gray-900 text-white min-h-screen">
@@ -194,7 +214,7 @@ const ProfilePage: React.FC = () => {
               <Package size={20} className="text-gray-400 mr-2" />
               <span className="text-xs text-blue-400 font-medium">Order Count</span>
             </div>
-            <p className="text-2xl font-bold">0</p>
+            <p className="text-2xl font-bold">{orderCount}</p>
           </div>
           <div className="bg-gray-800 rounded-xl p-4 text-center">
             <div className="flex items-center justify-center mb-2">
@@ -250,8 +270,6 @@ const ProfilePage: React.FC = () => {
         onClose={handleLoginClose}
         onContinue={handleLoginContinue}
       />
-      
-
     </div>
   );
 };

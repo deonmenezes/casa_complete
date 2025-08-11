@@ -1,4 +1,3 @@
-// models/product.js
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
@@ -47,17 +46,13 @@ const productSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
-    enum: ['male', 'female', 'unisex', 'others'],
+    enum: ['Male', 'Female', 'Unisex'],
   },
-
-  // Reference to Brand model
   brand: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Brand',
     required: true,
   },
-
-  // Reference to Category model
   category: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
@@ -67,5 +62,7 @@ const productSchema = new mongoose.Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
-module.exports = mongoose.model('Product', productSchema);
+// ✅ Avoid model overwrite
+const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 
+module.exports = Product;

@@ -14,19 +14,34 @@ const orderSchema = new mongoose.Schema({
         ref: 'Product',
         required: true
       },
+      name: {
+        type: String,
+        required: true
+      },
       quantity: {
         type: Number,
-        default: 1
+        default: 1,
+        required: true
+      },
+      price: {
+        type: Number,
+        required: true
+      },
+      size: {
+        type: String,
+        required: true
       }
     }
   ],
   deliveryStatus: {
+    required: true,
     type: String,
-    enum: ['Pending', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'],
+    enum: ['Pending', 'Accepted', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'],
     default: 'Pending'
   },
   estimatedDelivery: {
-    type: Date
+    type: Date,
+    required: true
   },
   address: {
     type: String,
@@ -34,8 +49,17 @@ const orderSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['Pending', 'Paid', 'Failed', "COD"],
-    default: 'Pending'
+    enum: ['Pending', 'Paid', 'Failed', "Razorpay"],
+    default: 'Pending',
+    required: true
+  },
+  totalAmount: {
+    type: Number,
+    required: true
+  },
+  paymentId: {
+    type: String,
+    default: null
   },
   createdAt: {
     type: Date,

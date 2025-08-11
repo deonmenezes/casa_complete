@@ -1,15 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
 
-// ENHANCEMENT: Added name and email fields to store user's personal information
-// collected during the onboarding process
-// MANAGE ACCOUNT: Added additional fields for profile management
 export interface UserData {
+  _id: string; // ✅ required
+  role: number; // ✅ required
   phoneNumber?: string;
-  name?: string; // User's full name collected in UserDetailsStep
-  email?: string; // User's email address collected in UserDetailsStep
-  dateOfBirth?: string; // User's date of birth
-  gender?: string; // User's gender selection (collected in UserDetailsStep)
+  name?: string;
+  email?: string;
+  dateOfBirth?: string;
+  gender?: string;
   isLoggedIn: boolean;
   isNewUser: boolean;
   onboardingData?: {
@@ -24,48 +23,76 @@ interface UserContextType {
   setUserData: (data: UserData) => void;
   updateOnboardingData: (data: Partial<UserData['onboardingData']>) => void;
   completeOnboarding: () => Promise<void>;
-  logout: () => void; // ENHANCEMENT: Added logout function for proper session management
+  logout: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
-
-// PERSISTENCE FEATURE: Helper functions for localStorage to maintain user session
-// across page refreshes and browser restarts
 const STORAGE_KEY = 'casa_user_data';
 
-/**
- * PERSISTENCE: Loads user data from localStorage on app startup
- * Includes validation to handle corrupted or invalid data
- * @returns UserData object or default logged-out state
- */
+// ✅ Validate if _id is a 24-char Mongo ObjectId
+const isValidObjectId = (id: string) => /^[a-f\d]{24}$/i.test(id);
+
 const loadUserDataFromStorage = (): UserData => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      // Validate that the parsed data has the expected structure
-      if (typeof parsed === 'object' && parsed !== null &&
-          typeof parsed.isLoggedIn === 'boolean') {
-        return parsed;
+      if (
+        typeof parsed === 'object' &&
+        parsed !== null &&
+        typeof parsed.isLoggedIn === 'boolean' &&
+        parsed.idLoggedIn === false
+      ) {
+        // ✅ Allow partially valid data if user is logged in
+        return {
+          _id: typeof parsed._id === 'string' ? parsed._id : '',
+          role: typeof parsed.role === 'number' ? parsed.role : -1,
+          phoneNumber: parsed.phoneNumber || '',
+          name: parsed.name || '',
+          email: parsed.email || '',
+          dateOfBirth: parsed.dateOfBirth || '',
+          gender: parsed.gender || '',
+          isLoggedIn: true,
+          isNewUser: parsed.isNewUser ?? false,
+          onboardingData: parsed.onboardingData || {}
+        };
+      }
+      else if(
+        typeof parsed === 'object' &&
+        parsed !== null &&
+        typeof parsed.isLoggedIn === 'boolean' &&
+        parsed.isLoggedIn === true
+      ) {
+        return {
+          _id: typeof parsed._id === 'string' ? parsed._id : '',
+          role: typeof parsed.role === 'number' ? parsed.role : -1,
+          phoneNumber: parsed.phoneNumber || '',
+          name: parsed.name || '',
+          email: parsed.email || '',
+          dateOfBirth: parsed.dateOfBirth || '',
+          gender: parsed.gender || '',
+          isLoggedIn: true,
+          isNewUser: parsed.isNewUser ?? false,
+          onboardingData: parsed.onboardingData || {}
+        };
       }
     }
   } catch (error) {
     console.error('Error loading user data from localStorage:', error);
-    // Clear corrupted data to prevent future issues
     localStorage.removeItem(STORAGE_KEY);
   }
-  // Return default logged-out state if no valid data found
+
+  // Default fallback (user is logged out)
   return {
+    _id: '',
+    role: -1,
     isLoggedIn: false,
     isNewUser: false,
     onboardingData: {}
   };
 };
 
-/**
- * PERSISTENCE: Saves user data to localStorage for session persistence
- * @param userData - The user data to save
- */
+
 const saveUserDataToStorage = (userData: UserData) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
@@ -75,11 +102,8 @@ const saveUserDataToStorage = (userData: UserData) => {
 };
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // PERSISTENCE: Initialize state with data from localStorage instead of default values
   const [userData, setUserData] = useState<UserData>(loadUserDataFromStorage);
 
-  // PERSISTENCE: Auto-save to localStorage whenever userData changes
-  // This ensures user session persists across page refreshes
   useEffect(() => {
     saveUserDataToStorage(userData);
   }, [userData]);
@@ -94,28 +118,23 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   };
 
-  /**
-   * LOGOUT FUNCTIONALITY: Properly clears user session
-   * Resets both React state and localStorage to ensure complete logout
-   */
   const logout = () => {
-    const defaultUserData = {
+    setUserData({
+      _id: '',
+      role: -1,
       isLoggedIn: false,
       isNewUser: false,
       onboardingData: {}
-    };
-    setUserData(defaultUserData);
-    localStorage.removeItem(STORAGE_KEY); // Clear persisted data
+    });
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   const completeOnboarding = async () => {
     try {
-      // BACKEND INTEGRATION: Prepare user data for backend API
-      // Uses collected name/email from UserDetailsStep, falls back to generated values
       const userDataForBackend = {
         phone: userData.phoneNumber,
-        email: userData.email || `${userData.phoneNumber?.replace(/[^0-9]/g, '')}@temp.casa`, // Use collected email or generate temp
-        display_name: userData.name || `User_${userData.phoneNumber?.slice(-4)}`, // Use collected name or generate from phone
+        email: userData.email || `${userData.phoneNumber?.replace(/[^0-9]/g, '')}@temp.casa`,
+        display_name: userData.name || `User_${userData.phoneNumber?.slice(-4)}`,
         interests: userData.onboardingData?.styleInterests || [],
         ml_preferences: userData.onboardingData?.preferredFits || [],
         age: userData.onboardingData?.ageRange?.includes('Gen Z') ? 22 :
@@ -123,33 +142,27 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         last_login: new Date()
       };
 
-      // Send data to backend
-      console.log('Sending user data to backend:', userDataForBackend);
       const response = await axios.post('http://localhost:5002/api/users', userDataForBackend);
-      console.log('User registered successfully:', response.data);
+      console.log('✅ User registered successfully:', response.data);
 
-      // ONBOARDING COMPLETION: Mark user as no longer new
       setUserData(prev => ({
         ...prev,
-        isNewUser: false
+        isNewUser: false,
+        isLoggedIn: true,
+        _id: response.data._id,
+        role: response.data.role
       }));
     } catch (error: any) {
-      console.error('Error registering user:', error);
-      if (error.response) {
-        console.error('Backend error response:', error.response.data);
-        console.error('Status:', error.response.status);
-
-        // DUPLICATE USER HANDLING: If user already exists, just mark onboarding as complete
-        if (error.response.status === 400 &&
-            error.response.data.error &&
-            error.response.data.error.includes('duplicate')) {
-          console.log('User already exists, marking onboarding as complete');
-        }
+      console.error('❌ Error registering user:', error);
+      if (error.response?.status === 400 && error.response.data.error?.includes('duplicate')) {
+        console.log('User already exists, marking onboarding as complete');
       }
-      // FALLBACK: Still update local state even if backend fails
       setUserData(prev => ({
         ...prev,
-        isNewUser: false
+        isNewUser: false,
+        isLoggedIn: true,
+        _id: prev._id || '',
+        role: prev.role || 0
       }));
     }
   };

@@ -28,7 +28,7 @@ const ProductList: React.FC<ProductsProp> = (props) => {
   const data = props.data || location.state;
   const [products] = useState<Product[]>(data || []);
 
-  return data && data.length > 0 ? (
+  return products.length > 0 ? (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
       {products.map((product) => (
         <div
@@ -52,7 +52,7 @@ const ProductList: React.FC<ProductsProp> = (props) => {
       ))}
     </div>
   ) : (
-    <h1 className="text-center text-lg mt-8">No products found.</h1>
+    <h1 className="text-white text-center text-lg mt-32">No products found.</h1>
   );
 };
 

@@ -1,20 +1,22 @@
 const mongoose = require('mongoose');
-require('dotenv').config(); // Ensure .env is loaded
+require('dotenv').config(); // ✅ Load .env
 
-const User = require('../models/user'); // ✅ Correct model name
+const User = require('../models/user'); // ✅ Import Mongoose model
+const userData = require('./dummy_users.json'); // ✅ Dummy data
 
-const userData = require('./dummy_users.json'); // ✅ Correct JSON file
+const mongoURI = process.env.MONGO_URI;
 
-// Connect to DB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ Connected to MongoDB'))
-.catch((err) => {
-  console.error('🔴 MongoDB connection error:', err);
+if (!mongoURI) {
+  console.error('❌ MONGO_URI not found in .env');
   process.exit(1);
-});
+}
+
+mongoose.connect(mongoURI)
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch((err) => {
+    console.error('🔴 MongoDB connection error:', err);
+    process.exit(1);
+  });
 
 async function insertUsers() {
   try {
@@ -27,8 +29,7 @@ async function insertUsers() {
         console.log(`⚠️ User already exists: ${item.email}`);
       }
     }
-
-    console.log('🎉 All users inserted!');
+    console.log('🎉 All users processed!');
   } catch (err) {
     console.error('❌ Error inserting users:', err);
   } finally {
@@ -36,4 +37,17 @@ async function insertUsers() {
   }
 }
 
-insertUsers();
+async function deleteUsers() {
+  try {
+    const result = await User.deleteMany({});
+    console.log(`🗑️ Deleted ${result.deletedCount} users`);
+  } catch (err) {
+    console.error('❌ Error deleting users:', err);
+  } finally {
+    mongoose.disconnect();
+  }
+}
+
+// Uncomment one of these to run:
+// insertUsers();
+// deleteUsers(); *******DANGER

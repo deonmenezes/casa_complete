@@ -5,7 +5,8 @@ const {
   addToCart,
   updateCartItem,
   removeFromCart,
-  clearCart
+  clearCart,
+  deleteCart
 } = require('../controllers/cartController');
 
 /**
@@ -33,6 +34,12 @@ router.put('/items', updateCartItem);
 // DELETE /api/cart/items
 // Body: { phone: "+919876543210", productId: "64b5f301...", size: "L" }
 router.delete('/items', removeFromCart);
+
+// Delete entire cart
+// DELETE /api/cart/delete
+// Body: { phone: "+917738303025" }
+
+router.delete('/delete', deleteCart);
 
 // Clear entire cart
 // DELETE /api/cart/clear

@@ -23,11 +23,15 @@ const getAllProducts = async (req, res) => {
       ...(excludeIds.length > 0 && { _id: { $nin: excludeIds } })
     };
 
-    const products = await Product.find(query)
-      .populate('brand category')
-      .skip(skip)
-      .limit(limit)
-      .sort({ created_at: -1 });
+    let productsQuery = Product.find(query).populate('brand category').sort({ created_at: -1 });
+
+    if (excludeIds.length === 0) {
+      productsQuery = productsQuery.skip(skip).limit(limit);
+    } else {
+      productsQuery = productsQuery.limit(limit); // Skip removed for swipe-mode
+    }
+
+    const products = await productsQuery;
 
     res.json(products);
   } catch (err) {
@@ -35,6 +39,7 @@ const getAllProducts = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // GET product by ID
 const getProductById = async (req, res) => {
@@ -53,11 +58,29 @@ const getProductById = async (req, res) => {
   }
 };
 
-// GET products by category (using tag field)
+// GET products by category (using category field)
 const getProductByCategory = async (req, res) => {
   try {
     const { category } = req.query;
-    const products = await Product.find({ tags: category });
+
+    // Find products by category ID or category name
+    let query;
+    if (mongoose.Types.ObjectId.isValid(category)) {
+      // If category is a valid ObjectId, search by category ID
+      query = { category: category };
+    } else {
+      // If category is a string, find the category by name first
+      const categoryDoc = await Category.findOne({ name: category });
+      if (!categoryDoc) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+      query = { category: categoryDoc._id };
+    }
+
+    const products = await Product.find(query)
+      .populate('brand', 'name logo_url')
+      .populate('category', 'name');
+
     res.json(products);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -66,9 +89,10 @@ const getProductByCategory = async (req, res) => {
 
 // GET all products by brand ID
 const getAllProductsByBrand = async (req, res) => {
+  
   try {
-    const brandId = req.query.id;
-
+    const brandId = req.params.id;
+    
     if (!brandId || !mongoose.Types.ObjectId.isValid(brandId)) {
       return res.status(400).json({ error: 'Valid brand ID is required in query (?id=...)' });
     }
@@ -143,34 +167,21 @@ const createProduct = async (req, res) => {
       sizes,
       fits,
       tags,
+      stock,
+      geo_tags,
       gender,
       brand,
       category
     } = req.body;
 
-    // Handle dynamic brand creation
-    if (typeof brand === 'object' && brand.name) {
-      let existingBrand = await Brand.findOne({ name: brand.name });
-      if (existingBrand) {
-        brand = existingBrand._id;
-      } else {
-        if (!brand.logo_url) {
-          return res.status(400).json({ error: 'Brand logo_url is required for new brands' });
-        }
-        const newBrand = await Brand.create(brand);
-        brand = newBrand._id;
-      }
+    const foundBrand = await Brand.findOne({ name: brand });
+    if (!foundBrand) {
+      return res.status(400).json({ error: `Brand "${brand}" not found` });
     }
 
-    // Handle dynamic category creation
-    if (typeof category === 'object' && category.name) {
-      let existingCategory = await Category.findOne({ name: category.name });
-      if (existingCategory) {
-        category = existingCategory._id;
-      } else {
-        const newCategory = await Category.create(category);
-        category = newCategory._id;
-      }
+    const foundCategory = await Category.findOne({ name: category });
+    if (!foundCategory) {
+      return res.status(400).json({ error: `Category "${category}" not found` });
     }
 
     const newProduct = new Product({
@@ -182,13 +193,15 @@ const createProduct = async (req, res) => {
       sizes,
       fits,
       tags,
+      stock,
+      geo_tags,
       gender,
-      brand,
-      category
+      brand: foundBrand,
+      category: foundCategory
     });
 
     const saved = await newProduct.save();
-    res.status(201).json(saved);
+    res.status(201).json({data: saved});
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -208,7 +221,17 @@ const deleteProduct = async (req, res) => {
 // UPDATE product by ID
 const updateProduct = async (req, res) => {
   try {
-    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, {
+
+    const brand = await Brand.findOne({name: req.body.brand})
+    const category = await Category.findOne({name: req.body.category})
+
+    if (!brand || !category) {
+      return res.status(400).json({ message: 'Invalid brand or category name' });
+    }
+
+    const product = {...req.body, brand: brand._id, category: [category._id]}
+    
+    const updated = await Product.findByIdAndUpdate(req.params.id, product, {
       new: true,
       runValidators: true
     });

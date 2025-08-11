@@ -77,15 +77,23 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const API_BASE = 'http://localhost:5002/api/cart';
 
   // Get phone number (with fallback)
-  const getPhoneNumber = () => userData.phoneNumber || '+919876543210';
+  const getPhoneNumber = () => userData.phoneNumber;
 
   // Fetch cart from backend
   const fetchCart = async () => {
+    if (userData.isLoggedIn === false){
+      return
+    }
     try {
       setLoading(true);
       setError(null);
       
       const phoneNumber = getPhoneNumber();
+      
+      if(!phoneNumber || phoneNumber === undefined){
+        return
+      }
+
       console.log('🛒 Fetching cart for phone:', phoneNumber);
       
       const response = await fetch(`${API_BASE}?phone=${encodeURIComponent(phoneNumber)}`);

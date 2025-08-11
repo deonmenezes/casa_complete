@@ -182,6 +182,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
 
         // ENHANCED USER CONTEXT: Update with login status and user detection
         setUserData({
+          _id: existingUser?._id,
           phoneNumber: fullPhoneNumber,
           name: existingUser?.display_name || undefined,
           email: existingUser?.email || undefined,

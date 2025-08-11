@@ -1,25 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Heart, User, ArrowLeft } from 'lucide-react';
+import axios from 'axios';
+
+interface Brand {
+  _id: string;
+  name: string;
+  logo_url?: string;
+  gender?: string; // 'MAN', 'WOMAN', or 'ALL'
+  is_active: boolean;
+}
 
 const CollectionPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState('MAN');
+  const [activeTab, setActiveTab] = useState('ALL BRANDS');
   const [activeCategory, setActiveCategory] = useState('Brands');
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(true);
 
-  // Initialize state from URL params
   useEffect(() => {
     const gender = searchParams.get('gender');
     const category = searchParams.get('category');
-
-    if (gender) {
-      setActiveTab(gender.toUpperCase());
-    }
-    if (category) {
-      setActiveCategory(category);
-    }
+    if (gender) setActiveTab(gender.toUpperCase());
+    if (category) setActiveCategory(category);
   }, [searchParams]);
+
+  useEffect(() => {
+    const fetchBrands = async () => {
+      setLoadingBrands(true);
+      try {
+        const res = await axios.get('http://localhost:5002/api/brands');
+        const data = res.data;
+        setBrands(data.filter((b: Brand) => b.is_active));
+      } catch (err) {
+        setBrands([]);
+      } finally {
+        setLoadingBrands(false);
+      }
+    };
+    fetchBrands();
+  }, []);
+
+  const filteredBrands = brands.filter(brand => {
+    if (activeTab === 'ALL BRANDS') return true;
+    if (brand.gender === 'ALL') return true;
+    return brand.gender === activeTab;
+  });
 
   const categories = [
     { id: 'Brands', label: 'Brands' },
@@ -27,17 +54,6 @@ const CollectionPage: React.FC = () => {
     { id: 'BottomWear', label: 'Bottom Wear' },
     { id: 'CoOrds', label: 'Co-Ords' },
     { id: 'Athleisure', label: 'Athleisure' },
-  ];
-
-  const brands = [
-    { id: 'a47', name: 'A47', logo: 'A47', bg: 'bg-white text-black' },
-    { id: 'aesthetic-bodies', name: 'Aesthetic Bodies', logo: '△', bg: 'bg-white text-black' },
-    { id: 'bad-teddy', name: 'Bad Teddy', logo: 'Bad Teddy', bg: 'bg-white text-black' },
-    { id: 'beegles', name: 'Beegles', logo: 'EE', bg: 'bg-black text-white' },
-    { id: 'bene-kleed', name: 'Bene Kleed', logo: 'Bene kleed', bg: 'bg-white text-black' },
-    { id: 'bodyssey', name: 'Bodyssey', logo: 'B', bg: 'bg-white text-black' },
-    { id: 'bonkers-corner', name: 'Bonkers Corner', logo: 'BONKERS CORNER', bg: 'bg-black text-white' },
-    { id: 'hummer', name: 'Hummer', logo: 'hummer', bg: 'bg-yellow-400 text-black' },
   ];
 
   const handleBrandClick = (brandId: string) => {
@@ -55,10 +71,9 @@ const CollectionPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen pb-20">
-      {/* Header */}
-      <div className="px-4 py-4 border-b border-gray-800">
-        <div className="flex items-center justify-between mb-4">
+    <div className="bg-gray-900 text-white min-h-screen pt-5">
+      <div className="px-5 border-b border-gray-800">
+        <div className="flex items-center justify-between mb-5">
           <div className="flex items-center space-x-3">
             <button onClick={() => navigate('/')} className="p-1">
               <ArrowLeft size={24} className="text-white hover:text-blue-400 transition-colors" />
@@ -69,7 +84,7 @@ const CollectionPage: React.FC = () => {
             <button onClick={() => navigate('/search')} className="p-1">
               <Search size={20} className="text-white hover:text-blue-400 transition-colors" />
             </button>
-            <button onClick={() => navigate('/wishlist')} className="p-1">
+            <button onClick={() => navigate('/curatedList')} className="p-1">
               <Heart size={20} className="text-white hover:text-red-400 transition-colors" />
             </button>
             <button onClick={() => navigate('/profile')} className="p-1">
@@ -154,16 +169,32 @@ const CollectionPage: React.FC = () => {
           <h2 className="text-xl font-bold mb-4">Brands</h2>
           
           <div className="grid grid-cols-2 gap-4">
-            {brands.map((brand) => (
-              <button
-                key={brand.id}
-                className={`aspect-square rounded-2xl flex flex-col items-center justify-center text-center p-4 hover:scale-105 transition-transform ${brand.bg}`}
-                onClick={() => handleBrandClick(brand.id)}
-              >
-                <div className="text-lg font-bold mb-2 leading-tight">{brand.logo}</div>
-                <div className="text-xs font-medium">{brand.name}</div>
-              </button>
-            ))}
+            {loadingBrands ? (
+              <div className="col-span-2 text-center text-gray-400">Loading brands...</div>
+            ) : filteredBrands.length === 0 ? (
+              <div className="col-span-2 text-center text-gray-400">No brands found.</div>
+            ) : (
+              filteredBrands.map((brand) => (
+                <button
+                  key={brand._id}
+                  className="aspect-square rounded-2xl flex flex-col items-center justify-center text-center p-4 hover:scale-105 transition-transform bg-gray-800"
+                  onClick={() => navigate(`/products?brand=${brand._id}`)}
+                >
+                  {brand.logo_url ? (
+                    <img
+                      src={brand.logo_url}
+                      alt={brand.name}
+                      className="w-16 h-16 object-contain mb-2 rounded-full"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gray-700 flex items-center justify-center rounded-full mb-2">
+                      <span className="text-xs text-gray-300">No Logo</span>
+                    </div>
+                  )}
+                  <div className="text-xs font-medium">{brand.name}</div>
+                </button>
+              ))
+            )}
           </div>
         </div>
       </div>

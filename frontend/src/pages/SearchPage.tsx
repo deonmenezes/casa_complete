@@ -73,11 +73,11 @@ const SearchPage: React.FC = () => {
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-4">Your past searches</h2>
           <button
-            onClick={() => navigate('/wishlist')}
+            onClick={() => navigate('/curatedList')}
             className="flex items-center space-x-3 text-gray-300 hover:text-white transition-colors"
           >
             <Search size={16} className="text-gray-500" />
-            <span>Wishlist</span>
+            <span>Curated List</span>
           </button>
         </div>
 
@@ -117,7 +117,7 @@ const SearchPage: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('Added to wishlist');
+                  console.log('Added to curated list');
                 }}
                 className="absolute top-2 right-2 p-1 bg-gray-900 bg-opacity-50 rounded-full hover:bg-opacity-70 transition-colors"
               >

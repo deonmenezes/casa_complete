@@ -1,84 +1,120 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Heart, User, MapPin } from 'lucide-react';
-import LoginPopup from './LoginPopup';
-import { useUser } from '../contexts/UserContext';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, Heart, User, MapPin } from "lucide-react";
+import { motion } from "framer-motion";
+import LoginPopup from "./LoginPopup";
+import { useUser } from "../contexts/UserContext";
 
 const TopBar: React.FC = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const { userData } = useUser();
-  const isLoggedIn = userData.isLoggedIn;
 
-  const isProductPage = location.pathname.startsWith('/product/');
-  const showBackButton = isProductPage;
+  const [curatedItems, setCuratedItems] = useState<Set<string>>(new Set());
+  const [liveAddress, setLiveAddress] = useState("Delivery Location");
 
-  const handleBack = () => {
-    navigate(-1);
+  useEffect(() => {
+    const saved = localStorage.getItem("savedAddress");
+    if (saved) setLiveAddress(saved);
+  }, []);
+
+  const handleSearch = () => navigate("/search");
+  const handleProfile = () => navigate("/profile");
+  const handleCuratedList = () => navigate("/curatedList");
+  const handleLocationClick = () => navigate("/location");
+
+  const loadCuratedList = async () => {
+    try {
+      const userId = userData?._id || "dummyUserId";
+      const res = await fetch(`http://localhost:5002/api/curatedlist/${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        const ids = data.products.map((p: any) => p._id);
+        setCuratedItems(new Set(ids));
+      }
+    } catch (err) {
+      console.error("Error loading curated list:", err);
+    }
   };
 
-  const handleSearch = () => {
-    navigate('/search');
-  };
+  useEffect(() => {
+    if (userData?.isLoggedIn) {
+      loadCuratedList();
+      // ✅ Listen for changes from anywhere in the app
+    const handleUpdate = () => {
+      loadCuratedList();
+    };
 
+    window.addEventListener("curatedListUpdated", handleUpdate);
 
-
-  const handleProfile = () => {
-    navigate('/profile');
-  };
-
-  const handleLoginClose = () => {
-    setIsLoginPopupOpen(false);
-  };
-
-  const handleLoginContinue = (phoneNumber: string) => {
-    console.log('Login with phone number:', phoneNumber);
-    // The LoginPopup component now handles user state updates
-    setIsLoginPopupOpen(false);
-    // Here you would typically make an API call to send OTP
-  };
+    return () => {
+      window.removeEventListener("curatedListUpdated", handleUpdate);
+    };
+    }
+  }, [userData?.isLoggedIn]);
 
   return (
-    <div className="top-bar bg-gray-900 text-white px-4 py-3 border-b border-gray-800">
-      {/* Main navigation */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          {showBackButton ? (
+    <>
+      {/* Fixed, centered to phone width */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 z-[100] w-full max-w-[413px] pt-[env(safe-area-inset-top)]">
+        <header className="bg-gray-900/95 text-white border-b border-gray-800 backdrop-blur supports-[backdrop-filter]:bg-gray-900/70 rounded-b-xl">
+          <div className="h-14 px-4 flex items-center justify-between">
             <button
-              onClick={handleBack}
-              className="btn p-2 -ml-2 hover:bg-gray-800 rounded-full transition-colors"
+              onClick={handleLocationClick}
+              className="group flex items-center gap-2 rounded-full px-2 py-2 -ml-2 hover:bg-white/5 active:bg-white/10"
+              aria-label="Change delivery location"
             >
-              <ArrowLeft size={20} />
+              <MapPin size={18} className="text-blue-400" />
+              <span className="text-sm text-blue-300 font-semibold truncate max-w-[200px] sm:max-w-[240px]">
+                {liveAddress}
+              </span>
             </button>
-          ) : (
-            <div className="flex items-center space-x-1">
-              <MapPin size={16} className="text-blue-400" />
-              <span className="text-sm">Delivery in <span className="text-blue-400 font-semibold">60 minutes</span></span>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleSearch}
+                className="h-10 w-10 grid place-items-center rounded-full hover:bg-white/5 active:bg-white/10"
+                aria-label="Search"
+              >
+                <Search size={20} />
+              </button>
+
+              <motion.button
+                onClick={handleCuratedList}
+                className="relative h-10 w-10 grid place-items-center rounded-full hover:bg-white/5 active:bg-white/10"
+                aria-label="Wishlist"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+              >
+                <Heart
+                  size={20}
+                  className={curatedItems.size > 0 ? "text-red-500 fill-current" : "text-white"}
+                />
+                {curatedItems.size > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-red-500 text-[10px] leading-5 text-white text-center"
+                  >
+                    {curatedItems.size > 99 ? "99+" : curatedItems.size}
+                  </motion.span>
+                )}
+              </motion.button>
+
+              <button
+                onClick={handleProfile}
+                className="h-10 w-10 grid place-items-center rounded-full hover:bg-white/5 active:bg-white/10"
+                aria-label="Profile"
+              >
+                <User size={20} />
+              </button>
             </div>
-          )}
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <button className="btn p-2 hover:bg-gray-800 rounded-full transition-colors">
-            <Search size={20} onClick={handleSearch} />
-          </button>
-
-          <button className="btn p-2 hover:bg-gray-800 rounded-full transition-colors">
-            <User size={20} onClick={handleProfile} />
-          </button>
-        </div>
+          </div>
+        </header>
       </div>
 
-
-
-      {/* Login Popup */}
-      <LoginPopup
-        isOpen={isLoginPopupOpen}
-        onClose={handleLoginClose}
-        onContinue={handleLoginContinue}
-      />
-    </div>
+      {/* Hidden by default */}
+      <LoginPopup isOpen={false} onClose={() => {}} onContinue={() => {}} />
+    </>
   );
 };
 

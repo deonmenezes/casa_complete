@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, MapPin, CreditCard, Truck, CheckCircle } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
+import { ArrowLeft, MapPin, CreditCard, Truck, CheckCircle, Minus, Plus } from 'lucide-react';
+import { CartData, useCart } from '../contexts/CartContext';
+import axios from "axios";
+import { useUser } from '../contexts/UserContext';
+import { useRazorpay } from '@razorpay/checkout';
 
 // Type definitions
 interface Product {
@@ -13,8 +16,8 @@ interface Product {
   discount?: string;
   image?: string;
   images?: string[];
-  selectedSize?: string;
-  quantity?: number;
+  selectedSize: string;
+  quantity: number;
 }
 
 interface Address {
@@ -38,7 +41,8 @@ const CheckoutPage: React.FC = () => {
   const [selectedPayment, setSelectedPayment] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const { cart } = useCart();
+  const { cart, updateQuantity } = useCart();
+  const { userData  }= useUser();
   const { product, bagItems, total, directBuy } = location.state || {};
 
   const fallbackBagItems = cart?.items || [];
@@ -89,24 +93,143 @@ const CheckoutPage: React.FC = () => {
   ];
 
   const paymentMethods: PaymentMethod[] = [
-    { id: 1, type: 'UPI', name: 'PhonePe / Google Pay / Paytm', icon: '📱' },
-    { id: 2, type: 'Card', name: 'Credit / Debit Card', icon: '💳' },
-    { id: 3, type: 'COD', name: 'Cash on Delivery', icon: '💵' }
+    { id: 1, type: 'Razorpay', name: 'Pay with Razorpay', icon: '💳' }
   ];
 
   const handlePlaceOrder = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
+    
+    try {
+      // Handle Razorpay payment
+      await handleRazorpayPayment();
+    } catch (error) {
+      console.error('Payment error:', error);
       setIsProcessing(false);
-      navigate('/order-success', {
-        state: {
-          orderId: 'ORD' + Date.now(),
-          items: orderItems,
-          total: orderTotal,
-          address: addresses[selectedAddress]
+      alert('Payment failed. Please try again.');
+    }
+  };
+
+  const createOrder = async (cart: CartData, deliveryAddress: string, paymentStatus: string, paymentId?: string) => {
+    try {
+      const response = await axios.post("http://localhost:5002/api/orders/create", {
+        user: userData._id,
+        products: cart.items,
+        address: deliveryAddress,
+        estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+        paymentStatus: paymentStatus,
+        deliveryStatus: "pending",
+        totalAmount: orderTotal,
+        paymentId: paymentId
+      });
+      return response.data
+    } catch (error: any){
+      console.error("Error creating order:", error.response?.data || error.message);
+    }
+  }
+
+  const deleteCart = async () => {
+    try {
+      const response = await axios.delete("http://localhost:5002/api/cart/delete", {
+        data: {
+          phone: userData.phoneNumber
         }
       });
-    }, 2000);
+      console.log("Cart deleted:", response.data);
+    } catch (error: any) {
+      console.error("Error deleting cart:", error.response?.data || error.message);
+    }
+  };
+  orderItems.map((item) => {console.log(item)})
+
+  const handleQuantity = async (productId: string, size: string , change: number) =>{
+    try {
+      const currentItem = orderItems.find(item =>
+        item.id === productId && item.selectedSize === size
+      );
+
+      if (currentItem) {
+        const newQuantity = Math.max(0, currentItem.quantity + change);
+        await updateQuantity(productId, size, newQuantity);
+      }
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
+    }
+  }
+
+  const handleRazorpayPayment = async () => {
+    try {
+      // Create Razorpay order
+      const paymentOrderResponse = await axios.post('http://localhost:5002/api/payments/create-order', {
+        amount: orderTotal,
+        currency: 'INR',
+        receipt: 'order_' + Date.now()
+      });
+
+      if (!paymentOrderResponse.data.success) {
+        throw new Error('Failed to create payment order');
+      }
+
+      const { order } = paymentOrderResponse.data;
+
+      // Initialize Razorpay
+      const options = {
+        key: 'rzp_live_NSJ391QbwVovIS', // LIVE KEY
+        amount: order.amount,
+        currency: order.currency,
+        name: 'CASA',
+        description: 'Payment for your order',
+        order_id: order.id,
+        handler: async function (response: any) {
+          try {
+            // Verify payment
+            const verifyResponse = await axios.post('http://localhost:5002/api/payments/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+
+            if (verifyResponse.data.success) {
+              // Payment successful, create order
+              const orderResponse = await createOrder(cart, addresses[selectedAddress].address, 'Paid', response.razorpay_payment_id);
+              if (orderResponse.success) {
+                await deleteCart();
+                setIsProcessing(false);
+                navigate('/order-success', {
+                  state: {
+                    orderId: 'ORD' + Date.now(),
+                    items: orderItems,
+                    total: orderTotal,
+                    address: addresses[selectedAddress],
+                    paymentId: response.razorpay_payment_id
+                  }
+                });
+              }
+            } else {
+              throw new Error('Payment verification failed');
+            }
+          } catch (error) {
+            console.error('Payment verification error:', error);
+            setIsProcessing(false);
+            alert('Payment verification failed. Please try again.');
+          }
+        },
+        prefill: {
+          name: userData?.name || '',
+          email: userData?.email || '',
+          contact: userData?.phoneNumber || ''
+        },
+        theme: {
+          color: '#10B981'
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error('Razorpay payment error:', error);
+      setIsProcessing(false);
+      alert('Failed to initialize payment. Please try again.');
+    }
   };
 
   return (
@@ -181,6 +304,21 @@ const CheckoutPage: React.FC = () => {
                       <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
                     )}
                   </div>
+
+                  <button
+                        onClick={() => {handleQuantity(item.id, item.selectedSize, -1)}}
+                        className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white hover:bg-gray-600"
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span className="w-8 text-center text-white">{item.quantity}</span>
+                      <button
+                        onClick={() => {handleQuantity(item.id, item.selectedSize, 1)}}
+                        className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white hover:bg-gray-600"
+                      >
+                        <Plus size={14} />
+                      </button>
+
                 </div>
               ))}
               <div className="border-t border-gray-700 pt-3">
@@ -239,16 +377,16 @@ const CheckoutPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Place Order */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 p-4">
-        <button
-          onClick={handlePlaceOrder}
-          disabled={isProcessing}
-          className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isProcessing ? 'Processing...' : `Place Order - ₹${orderTotal}`}
-        </button>
-      </div>
+             {/* Place Order */}
+       <div className="absolute bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 p-4">
+         <button
+           onClick={handlePlaceOrder}
+           disabled={isProcessing}
+           className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+         >
+           {isProcessing ? 'Processing...' : `Pay with Razorpay - ₹${orderTotal}`}
+         </button>
+       </div>
     </div>
   );
 };

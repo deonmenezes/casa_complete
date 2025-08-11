@@ -1,48 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Heart, User, MapPin } from 'lucide-react';
-import { handleSearch } from '../utils/getProducts';
+import axios from 'axios';
 
 interface Brand {
   _id: string;
   name: string;
   logo_url?: string;
   is_active: boolean;
-  created_at?: string; // Add this to match the backend's `createdAt` field
+  created_at?: string;
+}
+
+interface Category {
+  _id: string;
+  name: string;
+  image: string;
+  parentCategory?: string | null;
+}
+
+interface Product {
+  id?: string;
+  _id?: string;
+  name: string;
+  brand: string;
+  price: string;
+  images: string[];
+  selectedSize: string;
+  quantity: number;
 }
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedGender, setSelectedGender] = useState<'MAN' | 'WOMAN'>('MAN');
-
   const [allBrands, setAllBrands] = useState<Brand[]>([]);
-  const [latestBrands, setLatestBrands] = useState<Brand[]>([]); // New state for latest brands
-  const [trendingBrands, setTrendingBrands] = useState<Brand[]>([]); // New state for trending brands
+  const [latestBrands, setLatestBrands] = useState<Brand[]>([]);
+  const [trendingBrands, setTrendingBrands] = useState<Brand[]>([]);
   const [loadingBrands, setLoadingBrands] = useState(true);
-
-  // --- EXISTING HARDCODED DATA (Keep these for categories, iconic looks, and offers) ---
-  // ... (your menCategories, womenCategories, menIconicLooks, etc., remain here)
-  const menCategories = [
-    { id: 'oversized', label: 'Oversized T-shirt', image: 'https://images.pexels.com/photos/298863/pexels-photo-298863.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'shirts', label: 'Formal Shirts', image: 'https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'jeans', label: 'Jeans', image: 'https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'cargos', label: 'Cargos & Parachutes', image: 'https://images.pexels.com/photos/1598507/pexels-photo-1598507.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'hoodies', label: 'Hoodies', image: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'jackets', label: 'Jackets', image: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'coords', label: 'Co-ords', image: 'https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'shorts', label: 'Shorts', image: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  ];
-
-  const womenCategories = [
-    { id: 'dresses', label: 'Dresses', image: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'tops', label: 'Tops & Blouses', image: 'https://images.pexels.com/photos/298863/pexels-photo-298863.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'skirts', label: 'Skirts', image: 'https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'jeans-women', label: 'Jeans', image: 'https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'blazers', label: 'Blazers', image: 'https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'coords-women', label: 'Co-ords', image: 'https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'jumpsuits', label: 'Jumpsuits', image: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { id: 'cardigans', label: 'Cardigans', image: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  ];
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [womenCategories, setWomenCategories] = useState<Category[]>([]);
+  const [menCategories, setMenCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const currentCategories = selectedGender === 'MAN' ? menCategories : womenCategories;
 
   const menIconicLooks = [
@@ -114,13 +111,10 @@ const HomePage: React.FC = () => {
   ];
 
   const searchSuggestions = [
-    'Green Nature T-Shirt',
     'Mini Dress', 'Urban Blazers', 'Tailored trousers',
-    'Street Shorts', 'Chinos', 'Relaxed Joggers', 'Hoodie'
+    'Street Shorts', 'Chinos', 'Relaxed Joggers'
   ];
-  // --- END EXISTING HARDCODED DATA ---
 
-  // Carousel state and handlers (unchanged)
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -144,71 +138,93 @@ const HomePage: React.FC = () => {
   const handleMouseUp = () => { if (!isDragging) return; setIsDragging(false); if (!touchStart || !touchEnd) return; const distance = touchStart - touchEnd; const isLeftSwipe = distance > 50; const isRightSwipe = distance < -50; if (isLeftSwipe) { nextSlide(); } else if (isRightSwipe) { prevSlide(); } };
   const handleMouseLeave = () => setIsDragging(false);
 
-  // --- UPDATED BRAND FETCHING LOGIC ---
   useEffect(() => {
     const fetchBrands = async () => {
       setLoadingBrands(true);
       try {
-        // Fetch all active brands
         const allRes = await fetch("http://localhost:5002/api/brands");
         if (!allRes.ok) throw new Error(`HTTP error! status: ${allRes.status}`);
         const allData: Brand[] = await allRes.json();
         const activeAllBrands = allData.filter(brand => brand.is_active);
         setAllBrands(activeAllBrands);
 
-        // Fetch latest brands (using the 'sort=latest' query parameter)
         const latestRes = await fetch("http://localhost:5002/api/brands?sort=latest");
         if (!latestRes.ok) throw new Error(`HTTP error! status: ${latestRes.status}`);
         const latestData: Brand[] = await latestRes.json();
-        // Filter for active brands if your backend doesn't already do it for 'latest' sort
         const activeLatestBrands = latestData.filter(brand => brand.is_active);
         setLatestBrands(activeLatestBrands);
 
-        // For trending, for now, we'll just take a slice of all brands.
-        // In a real app, you'd have a separate endpoint or property for trending.
-        setTrendingBrands(activeAllBrands.slice(0, 4)); // Example: first 4 active brands as trending
-
+        setTrendingBrands(activeAllBrands.slice(0, 4));
       } catch (err) {
-        console.error("Error fetching brands:", err);
-        // Optionally, set an error state to display a message to the user
+        // console.error("Error fetching brands:", err);
       } finally {
         setLoadingBrands(false);
       }
     };
-
     fetchBrands();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
-  // --- DERIVED STATES FOR LATEST DROPS (using the fetched `latestBrands` state) ---
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoadingCategories(true);
+      try {
+        const response = await axios.get('http://localhost:5002/api/categories');
+        const data = response.data;
+        // console.log('Fetched categories:', data);
+
+        const menNames = [
+          "Oversized T-shirt", "Shirt", "Jeans", "Cargos & Parachutes", "sunglasses", "watches", "bracelets", "necklace"
+        ];
+        const womenNames = [
+          "Dresses", "Tops", "Kurtis", "Bodysuits", "Handbags", "Sunglasses", "Earrings", "Necklace"
+        ];
+
+        const filteredMenCategories = data.filter((cat: Category) => menNames.includes(cat.name));
+        const filteredWomenCategories = data.filter((cat: Category) => womenNames.includes(cat.name));
+
+        // console.log('Filtered men categories:', filteredMenCategories);
+        // console.log('Filtered women categories:', filteredWomenCategories);
+
+        setMenCategories(filteredMenCategories);
+        setWomenCategories(filteredWomenCategories);
+      } catch (error) {
+        // console.error("Failed to fetch categories:", error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   const getLatestDropsByGender = (gender: 'MAN' | 'WOMAN') => {
-    // For a real application, you'd likely want to fetch latest brands specifically by gender from the backend.
-    // For now, this will show the overall latest brands fetched, regardless of the selected gender,
-    // as your backend currently provides a general 'latest' sort.
-    // If you need gender-specific latest drops, your Brand model would need a 'gender_affinity' field
-    // and your backend would need to filter by it.
-    // For display, we'll try to find a color, otherwise use a default.
-    return latestBrands.map(brand => {
-      // You could map specific colors to specific brand names if needed, or use a default.
-      // For a more robust solution, your brand model should have a `color` field.
+    return latestBrands.slice(0, 4).map(brand => {
       const colors = ['bg-yellow-600', 'bg-gray-800', 'bg-purple-400', 'bg-blue-600', 'bg-pink-500', 'bg-red-500', 'bg-green-600'];
-      const randomColor = colors[Math.floor(Math.random() * colors.length)]; // Just for demo
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
       return {
         id: brand._id,
         brand: brand.name,
-        image: brand.logo_url || 'https://via.placeholder.com/100', // Use logo_url or a placeholder
-        color: randomColor // Assign a color or fetch from brand data if available
+        image: brand.logo_url || 'https://via.placeholder.com/100',
+        color: randomColor
       };
     });
   };
 
   const currentLatestDropsDynamic = getLatestDropsByGender(selectedGender);
 
-  const handleCategoryClick = (categoryId: string) => {
-    navigate(`/collection?category=${categoryId}&gender=${selectedGender.toLowerCase()}`);
+  const handleCategoryClick = async (categoryId: string) => {
+    try {
+      const res = await fetch(`http://localhost:5002/api/products/category?category=${categoryId}`);
+      if (!res.ok) throw new Error('Failed to fetch products');
+      let products = await res.json();
+      products = products.map((p: any) => ({ ...p, id: p._id }));
+      setProducts(products);
+    } catch (error) {
+      // console.error('Error fetching products:', error);
+    }
   };
 
   const handleBrandClick = (brandId: string) => {
-    navigate(`/brands/${brandId}`); // Assuming you have a route like /brands/:id
+    navigate(`/brands/${brandId}`);
   };
 
   const handleOfferClick = (offerId: string) => {
@@ -216,7 +232,7 @@ const HomePage: React.FC = () => {
   };
 
   const handleSearchSuggestion = (suggestion: string) => {
-    handleSearch(suggestion, navigate)
+    navigate(`/collection?search=${encodeURIComponent(suggestion)}`);
   };
 
   const handleGenderChange = (gender: 'MAN' | 'WOMAN') => {
@@ -229,10 +245,40 @@ const HomePage: React.FC = () => {
     }, 100);
   };
 
+  const mergedCategories = currentCategories
+    .map((category) => ({
+      id: category._id,
+      name: category.name,
+      image: category.image
+    }))
+    .filter((cat) => cat.name && cat.image && cat.image !== 'https://via.placeholder.com/150');
+
+  // console.log('Current gender:', selectedGender);
+  // console.log('Current categories:', currentCategories);
+  // console.log('Merged categories:', mergedCategories);
+
   return (
-    <div className="bg-gray-900 text-white min-h-screen pb-32">
-      {/* Top Header */}
-  
+    
+    <div className="bg-gray-900 text-white min-h-screen">
+      {/* <div className="px-4 py-3 border-b border-gray-800">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-1">
+            <MapPin size={16} className="text-blue-400" />
+            <span className="text-sm">Delivery in <span className="text-blue-400 font-semibold">60 minutes</span></span>
+          </div>
+          <div className="flex items-center space-x-3">
+            <button onClick={() => navigate('/search')} className="p-1">
+              <Search size={20} className="text-white hover:text-blue-400 transition-colors" />
+            </button>
+            <button onClick={() => navigate('/curatedList')} className="p-1">
+              <Heart size={20} className="text-white hover:text-red-400 transition-colors" />
+            </button>
+            <button onClick={() => navigate('/profile')} className="p-1">
+              <User size={20} className="text-white hover:text-blue-400 transition-colors" />
+            </button>
+          </div>
+        </div>
+      </div> */}
 
       {/* User Selection */}
       <div className="flex items-center justify-center space-x-4 px-4 py-4">
@@ -267,22 +313,20 @@ const HomePage: React.FC = () => {
           />
         </button>
       </div>
-
-      {/* Brand Logo (Your main app logo, not individual brands) */}
       <div className="text-center py-4">
         <div className="flex items-center justify-center space-x-2">
           <div className="flex space-x-1">
-            {[...Array(3)].map((_, i) => (
+            {/* {[...Array(3)].map((_, i) => (
               <div key={i} className="w-1 h-6 bg-white transform rotate-12"></div>
-            ))}
+            ))} */}
           </div>
           <h1 className="text-2xl font-bold">
             <span className="text-gray-400 text-xs">+ CERTIFIED +</span>
           </h1>
           <div className="flex space-x-1">
-            {[...Array(3)].map((_, i) => (
+            {/* {[...Array(3)].map((_, i) => (
               <div key={i} className="w-1 h-6 bg-white transform -rotate-12"></div>
-            ))}
+            ))} */}
           </div>
         </div>
         <h1 className="text-3xl font-bold mt-1">
@@ -292,19 +336,17 @@ const HomePage: React.FC = () => {
         </h1>
         <div className="flex items-center justify-center space-x-2 mt-2">
           <div className="flex space-x-1">
-            {[...Array(3)].map((_, i) => (
+            {/* {[...Array(3)].map((_, i) => (
               <div key={i} className="w-1 h-6 bg-white transform rotate-12"></div>
-            ))}
+            ))} */}
           </div>
           <div className="flex space-x-1">
-            {[...Array(3)].map((_, i) => (
+            {/* {[...Array(3)].map((_, i) => (
               <div key={i} className="w-1 h-6 bg-white transform -rotate-12"></div>
-            ))}
+            ))} */}
           </div>
         </div>
       </div>
-
-      {/* Auto-playing Carousel */}
       <div className="px-4 mb-6">
         <div
           className="relative rounded-3xl overflow-hidden h-96 cursor-grab active:cursor-grabbing select-none"
@@ -366,37 +408,59 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Categories Grid */}
       <div className="px-4 mb-8" data-section="categories">
         <h2 className="text-xl font-bold mb-4">
           {selectedGender === 'MAN' ? "Men's" : "Women's"} Categories
         </h2>
-        <div className="grid grid-cols-4 gap-3 transition-all duration-500 ease-in-out">
-          {currentCategories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => handleCategoryClick(category.id)}
-              className="text-center hover:scale-105 transition-transform"
-            >
-              <div className="bg-gray-800 rounded-2xl p-3 mb-2 aspect-square flex items-center justify-center hover:bg-gray-700 transition-colors">
+        {loadingCategories ? (
+          <div className="text-center py-8">
+            <p className="text-gray-400">Loading categories...</p>
+          </div>
+        ) : mergedCategories.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-400">No categories found for {selectedGender === 'MAN' ? "Men's" : "Women's"} section.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 gap-3 transition-all duration-500 ease-in-out">
+            {mergedCategories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => navigate(`/products/${category.id}`)}
+                className="flex flex-col items-center justify-center text-center p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              >
                 <img
                   src={category.image}
-                  alt={category.label}
-                  className="w-full h-full object-cover rounded-xl"
+                  alt={category.name}
+                  className="w-16 h-16 object-cover rounded-full mb-2 border-2 border-transparent hover:border-blue-400 transition-colors"
                 />
-              </div>
-              <p className="text-xs font-medium text-white">{category.label}</p>
-            </button>
-          ))}
-        </div>
+                <p className="text-xs font-medium text-gray-300 hover:text-white transition-colors">{category.name}</p>
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex justify-center space-x-2 mt-4">
           <div className="w-2 h-2 bg-white rounded-full"></div>
           <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
         </div>
       </div>
-
-      {/* What's your next iconic look? */}
+      {products.length > 0 && (
+        <div className="px-4 mb-8">
+          <h2 className="text-xl font-bold mb-4">Products</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {products.map((product) => (
+              <div key={product.id || product._id} className="bg-gray-800 p-3 rounded-lg flex flex-col items-center justify-center text-center">
+                <img
+                  src={product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/150'}
+                  alt={product.name || 'Product'}
+                  className="w-24 h-32 object-cover mb-2 rounded"
+                />
+                <p className="text-sm font-semibold text-white">{product.name || 'No Name'}</p>
+                <p className="text-xs text-gray-400">{product.price ? `₹${product.price}` : ''}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="px-4 mb-8">
         <h2 className="text-xl font-bold mb-4">
           {selectedGender === 'MAN' ? "Men's" : "Women's"} Iconic Looks
@@ -420,8 +484,6 @@ const HomePage: React.FC = () => {
           ))}
         </div>
       </div>
-
-      {/* Latest Drops (Uses fetched `latestBrands` data) */}
       <div className="px-4 mb-8">
         <h2 className="text-xl font-bold mb-4">
           {selectedGender === 'MAN' ? "Man's Latest Brands" : "Women's Latest Brands"}
@@ -454,8 +516,6 @@ const HomePage: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Offers */}
       <div className="px-4 mb-8">
         <h2 className="text-xl font-bold mb-4">
           {selectedGender === 'MAN' ? "Men's" : "Women's"} Offers
@@ -482,8 +542,6 @@ const HomePage: React.FC = () => {
           ))}
         </div>
       </div>
-
-      {/* Trending Brands (Uses fetched `trendingBrands` data) */}
       <div className="px-4 mb-8">
         <h2 className="text-xl font-bold mb-4">Trending Brands</h2>
         {loadingBrands ? (
@@ -511,8 +569,6 @@ const HomePage: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* All Brands Section */}
       <div className="px-4 mb-8">
         <h2 className="text-xl font-bold mb-4">All Brands</h2>
         {loadingBrands ? (
@@ -520,8 +576,8 @@ const HomePage: React.FC = () => {
         ) : allBrands.length === 0 ? (
           <p className="text-gray-400">No brands found.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {allBrands.map((brand) => (
+                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+             {allBrands.slice(0, 8).map((brand) => (
               <button
                 key={brand._id}
                 onClick={() => handleBrandClick(brand._id)}
@@ -544,8 +600,6 @@ const HomePage: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* No Clue? Start Here! */}
       <div className="px-4 mb-8">
         <h2 className="text-xl font-bold mb-4">No Clue? Start Here!</h2>
         <div className="grid grid-cols-3 gap-2">
@@ -561,8 +615,6 @@ const HomePage: React.FC = () => {
           ))}
         </div>
       </div>
-
-      {/* Swipe Products Button */}
       <div className="px-4 mb-6">
         <button
           onClick={() => navigate('/swipe')}
@@ -578,8 +630,6 @@ const HomePage: React.FC = () => {
           </div>
         </button>
       </div>
-
-      {/* Quick Test Button (for development/testing) */}
       <div className="px-4 mb-6">
         <button
           onClick={() => navigate('/checkout', {
@@ -596,17 +646,10 @@ const HomePage: React.FC = () => {
               directBuy: true
             }
           })}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-full transition-colors"
+          className="w-full bg-green-400 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-full transition-colors"
         >
           🛒 Test Checkout (Quick Access)
         </button>
-      </div>
-
-      {/* Footer Message */}
-      <div className="px-4 mb-8 text-center">
-        <h2 className="text-2xl font-bold mb-2 text-gray-300">CURATING CONFIDENCE</h2>
-        <h2 className="text-2xl font-bold mb-4 text-gray-300">ONE OUTFIT AT A TIME.</h2>
-        <p className="text-gray-400">Always, <span className="font-bold">KNOT</span> Team</p>
       </div>
     </div>
   );

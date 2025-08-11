@@ -75,7 +75,7 @@ const BrandPage: React.FC = () => {
       try {
         setLoadingBrand(true);
         setError(null);
-        const res = await fetch(`${API_BASE}/api/brands/id/${brandId}`, {
+          const res = await fetch(`${API_BASE}/api/brands/${brandId}`, {
           signal: ctrl.signal,
           headers: { Accept: "application/json" },
         });
@@ -102,12 +102,13 @@ const BrandPage: React.FC = () => {
     const run = async () => {
       try {
         setLoadingProducts(true);
-        const res = await fetch(`${API_BASE}/api/products/brand?id=${brandId}`, {
+        const res = await fetch(`${API_BASE}/api/products/brand/${brandId}`, {
           signal: ctrl.signal,
           headers: { Accept: "application/json" },
         });
         if (!res.ok) throw new Error("Failed to fetch products");
         const data: Product[] = await res.json();
+        console.log("Fetched products:", data);
         setProducts(Array.isArray(data) ? data : []);
       } catch (e: any) {
         if (e.name !== "AbortError") {

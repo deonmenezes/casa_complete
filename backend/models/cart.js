@@ -28,7 +28,7 @@ const cartItemSchema = new mongoose.Schema({
 });
 
 const cartSchema = new mongoose.Schema({
-  // User identification (using phone number like wishlist)
+  // User identification (using phone number like curated list)
   phone: {
     type: String,
     required: true,

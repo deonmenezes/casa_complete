@@ -61,8 +61,6 @@ const getCart = async (req, res) => {
         error: 'Phone number is required'
       });
     }
-    
-    console.log(`📦 Fetching cart for phone: ${phone}`);
 
     let cart = await Cart.findByPhone(phone);
 
@@ -81,11 +79,8 @@ const getCart = async (req, res) => {
         message: 'Cart is empty'
       });
     }
-
     // Clean up any duplicate items
     cart = await cleanupDuplicateItems(cart);
-
-    console.log(`✅ Cart found with ${cart.items.length} items`);
     
     res.json({
       success: true,
@@ -350,10 +345,43 @@ const clearCart = async (req, res) => {
   }
 };
 
+const deleteCart = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        error: 'Phone number is required'
+      })
+    }
+
+    const deleteCart = await Cart.findOneAndDelete({phone})
+
+    if(!deleteCart) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cart not found'
+      })
+    }
+
+    res.json({
+      success: true,
+      message: 'Cart deleted successfully'
+    })
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to delete cart',
+      details: error.message
+    })
+  }
+}
 module.exports = {
   getCart,
   addToCart,
   updateCartItem,
   removeFromCart,
-  clearCart
+  clearCart,
+  deleteCart
 };
