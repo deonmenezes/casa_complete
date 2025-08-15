@@ -1,5 +1,5 @@
 import React from "react";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { UserProvider } from "./contexts/UserContext";
 import { CartProvider } from "./contexts/CartContext";
