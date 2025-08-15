@@ -40,7 +40,7 @@ const Order: React.FC = () => {
 
       try {
         const res = await axios.get(
-          `http://localhost:5002/api/brands/sales/${brand._id}`
+          `http://https://casa-backend-uf0h.onrender.com/api/brands/sales/${brand._id}`
         );
         setSales(res.data.data);
       } catch (err) {
@@ -74,7 +74,7 @@ const Order: React.FC = () => {
     // Optional: Persist change to backend
     try {
       const res = await axios.put(
-        `http://localhost:5002/api/orders/update/${order_id}`,
+        `http://https://casa-backend-uf0h.onrender.com/api/orders/update/${order_id}`,
         { deliveryStatus: newStatus }
       );
       if(res.data.success){

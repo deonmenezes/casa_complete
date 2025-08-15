@@ -25,7 +25,7 @@ const TopBar: React.FC = () => {
   const loadCuratedList = async () => {
     try {
       const userId = userData?._id || "dummyUserId";
-      const res = await fetch(`http://localhost:5002/api/curatedlist/${userId}`);
+      const res = await fetch(`http://https://casa-backend-uf0h.onrender.com/api/curatedlist/${userId}`);
       if (res.ok) {
         const data = await res.json();
         const ids = data.products.map((p: any) => p._id);

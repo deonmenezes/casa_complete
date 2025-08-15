@@ -301,7 +301,7 @@ function Deck() {
 
       console.log("🔍 Loading curated list for userId:", userId);
       const response = await fetch(
-        `http://localhost:5002/api/curatedlist/${userId}`,
+        `http://https://casa-backend-uf0h.onrender.com/api/curatedlist/${userId}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -396,7 +396,7 @@ function Deck() {
 
       if (isCurrentlyInList) {
         const response = await fetch(
-          "http://localhost:5002/api/curatedlist/remove",
+          "http://https://casa-backend-uf0h.onrender.com/api/curatedlist/remove",
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -418,7 +418,7 @@ function Deck() {
         }
       } else {
         const response = await fetch(
-          "http://localhost:5002/api/curatedlist/add",
+          "http://https://casa-backend-uf0h.onrender.com/api/curatedlist/add",
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },

@@ -4,7 +4,7 @@ export const handleSearch = async (query: string, navigate: any) => {
     //search implementation here
     try{
       if (query.trim()) {
-        const res = await axios.post(`http://localhost:5002/api/products/search`, {
+        const res = await axios.post(`http://https://casa-backend-uf0h.onrender.com/api/products/search`, {
           query 
         });
         navigate('/products', { state: res.data  })

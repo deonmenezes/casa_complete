@@ -164,7 +164,7 @@ const BrandSignup = () => {
         ...formData,
         social_links: formData.social_links.filter(link => link.trim() !== '')
       };
-      const res = await fetch('http://localhost:5002/api/brands/create', {
+      const res = await fetch('http://https://casa-backend-uf0h.onrender.com/api/brands/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cleanedData)

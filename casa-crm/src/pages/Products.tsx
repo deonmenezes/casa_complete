@@ -62,7 +62,7 @@ const Products = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`http://localhost:5002/api/products/brand/${brand?._id}`);
+        const response = await axios.get(`http://https://casa-backend-uf0h.onrender.com/api/products/brand/${brand?._id}`);
         setProducts(response.data);
         console.log(response.data)
       } catch (error) {

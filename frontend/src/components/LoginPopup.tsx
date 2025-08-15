@@ -111,7 +111,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
     const fullPhone = `${countryCode}${phoneNumber}`;
 
     try {
-      const res = await fetch('http://localhost:5002/api/users/generate-otp', {
+      const res = await fetch('http://https://casa-backend-uf0h.onrender.com/api/users/generate-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -160,11 +160,11 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
       try {
         // CHECK IF USER EXISTS: Query backend to see if this is a returning user
         console.log('🔍 Checking user existence for phone:', fullPhoneNumber);
-        const response = await fetch(`http://localhost:5002/api/users?phone=${encodeURIComponent(fullPhoneNumber)}`);
+        const response = await fetch(`http://https://casa-backend-uf0h.onrender.com/api/users?phone=${encodeURIComponent(fullPhoneNumber)}`);
         const users = await response.json();
 
         console.log('📞 API Response:', {
-          url: `http://localhost:5002/api/users?phone=${encodeURIComponent(fullPhoneNumber)}`,
+          url: `http://https://casa-backend-uf0h.onrender.com/api/users?phone=${encodeURIComponent(fullPhoneNumber)}`,
           responseStatus: response.status,
           usersCount: users.length,
           users: users

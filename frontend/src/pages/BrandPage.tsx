@@ -40,7 +40,7 @@ interface Brand {
 // ---------- Helpers ----------
 const API_BASE =
   (import.meta as any)?.env?.VITE_API_BASE_URL ||
-  "http://localhost:5002"; // fallback to local development server
+  "http://https://casa-backend-uf0h.onrender.com"; // fallback to local development server
 
 const formatINRCurrency = (value: number, currency = "INR") =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency }).format(value);
