@@ -62,7 +62,7 @@ A modern, interactive e-commerce mobile application built with React, TypeScript
 
 4. **Open in browser**
    ```
-   http://localhost:5173
+   http://casashop.in
    ```
 
 ## 📦 Build & Deploy

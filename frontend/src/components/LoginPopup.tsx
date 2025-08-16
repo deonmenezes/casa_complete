@@ -181,7 +181,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
 
   const handleResendOtp = async () => {
     try {
-      const response = await fetch('http://localhost:5002/api/users/generate-otp', {
+      const response = await fetch('http://casashop.in/api/users/generate-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

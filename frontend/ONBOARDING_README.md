@@ -49,7 +49,7 @@ This implementation adds a user onboarding flow for new users to collect their p
 ## How to Test
 
 ### Test New User Flow:
-1. Go to the app (http://localhost:5173/)
+1. Go to the app (http://casashop.in/)
 2. Click on Profile or any login-required feature
 3. Enter any phone number (except ones containing '1234567890')
 4. Click Continue

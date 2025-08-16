@@ -15,7 +15,7 @@ Thank you for your interest in contributing to Project Casa! This document provi
 2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/project-casa.git`
 3. Install dependencies: `npm install`
 4. Start development server: `npm run dev`
-5. Open http://localhost:5173
+5. Open http://casashop.in
 
 ## 📋 How to Contribute
 
