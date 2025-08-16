@@ -127,7 +127,7 @@ const ProductPage: React.FC = () => {
 
   const fetchProduct = async (id: string) => {
     try {
-      const response = await fetch(`https://casa-backend-uf0h.onrender.com/api/products/id/${id}`);
+      const response = await fetch(`http://localhost:5002/api/products/id/${id}`);
       const data: Product = await response.json(); // Explicitly type data
       setProduct(data);
       // Set a default selected size if product has sizes and no size is pre-selected

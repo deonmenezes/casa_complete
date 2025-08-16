@@ -89,7 +89,7 @@ const ManageAccountPage: React.FC = () => {
       setUserData(updatedUserData);
       
       // TODO: Add backend API call to update user information
-      // const response = await fetch(`https://casa-backend-uf0h.onrender.com/api/users/${userId}`, {
+      // const response = await fetch(`http://localhost:5002/api/users/${userId}`, {
       //   method: 'PUT',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(updatedData)
@@ -160,7 +160,7 @@ const ManageAccountPage: React.FC = () => {
 
     try {
       // BACKEND API CALL: Delete user account from database
-      const response = await fetch('https://casa-backend-uf0h.onrender.com/api/users/delete-by-phone', {
+      const response = await fetch('http://localhost:5002/api/users/delete-by-phone', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

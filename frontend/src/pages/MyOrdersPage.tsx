@@ -51,7 +51,7 @@ const MyOrdersPage: React.FC = () => {
       }
 
       try {
-        const response = await axios.get(`https://casa-backend-uf0h.onrender.com/api/orders/user/${userData._id}`);
+        const response = await axios.get(`http://localhost:5002/api/orders/user/${userData._id}`);
         if (response.data.success) {
           setOrders(response.data.orders);
         } else {

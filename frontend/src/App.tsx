@@ -1,5 +1,4 @@
 import React from "react";
-import { Analytics } from "@vercel/analytics/react"
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { UserProvider } from "./contexts/UserContext";
 import { CartProvider } from "./contexts/CartContext";
@@ -30,7 +29,6 @@ function App() {
   return (
     <div className="mobile-container">
       <UserProvider>
-      <Analytics />
         <CartProvider>
           <Router>
             <div className="min-h-screen bg-gray-900 text-white mobile-scroll">

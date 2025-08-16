@@ -51,7 +51,7 @@ const CuratedListPage: React.FC = () => {
   try {
     console.log("🔍 Fetching curated list for userId:", userId);
 
-    const response = await fetch(`https://casa-backend-uf0h.onrender.com/api/curatedlist/${userId}`, {
+    const response = await fetch(`http://localhost:5002/api/curatedlist/${userId}`, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -98,7 +98,7 @@ const CuratedListPage: React.FC = () => {
 //     }
 
 //     if (isCurrentlyInList) {
-//       const response = await fetch('https://casa-backend-uf0h.onrender.com/api/curatedlist/remove', {
+//       const response = await fetch('http://localhost:5002/api/curatedlist/remove', {
 //         method: 'PUT',
 //         headers: { 'Content-Type': 'application/json' },
 //         body: JSON.stringify({ userId, productId }),
@@ -117,7 +117,7 @@ const CuratedListPage: React.FC = () => {
 //         setCuratedItems(prev => new Set(prev).add(productId));
 //       }
 //     } else {
-//       const response = await fetch('https://casa-backend-uf0h.onrender.com/api/curatedlist/add', {
+//       const response = await fetch('http://localhost:5002/api/curatedlist/add', {
 //         method: 'PUT',
 //         headers: { 'Content-Type': 'application/json' },
 //         body: JSON.stringify({ userId, productId }),
@@ -143,7 +143,7 @@ const CuratedListPage: React.FC = () => {
   const removeFromCuratedList = async (productId: string) => {
     try {
       const userId = userData._id
-      const response = await fetch('https://casa-backend-uf0h.onrender.com/api/curatedlist/remove', {
+      const response = await fetch('http://localhost:5002/api/curatedlist/remove', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

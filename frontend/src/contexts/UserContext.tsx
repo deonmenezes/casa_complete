@@ -157,7 +157,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         shipment: []
       };
 
-      const response = await axios.post('https://casa-backend-uf0h.onrender.com/api/users', userDataForBackend);
+      console.log('📤 Sending user data to backend:', userDataForBackend);
+
+      const response = await axios.post('http://localhost:5002/api/users', userDataForBackend);
       console.log('✅ User registered successfully:', response.data);
 
       setUserData(prev => ({

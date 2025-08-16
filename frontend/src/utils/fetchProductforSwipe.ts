@@ -19,7 +19,7 @@ interface Product {
 
 const fetchProducts = async (page: number = 1, limit: number = 10, excludeIds: string[] = []): Promise<Product[]> => {
   try {
-    let url = `https://casa-backend-uf0h.onrender.com/api/products?page=${page}&limit=${limit}`;
+    let url = `http://localhost:5002/api/products?page=${page}&limit=${limit}`;
 
     // Add exclude parameter if we have IDs to exclude
     if (excludeIds.length > 0) {

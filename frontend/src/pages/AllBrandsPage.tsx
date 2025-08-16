@@ -16,7 +16,7 @@ const AllBrandsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://casa-backend-uf0h.onrender.com/api/brands")
+    fetch("http://localhost:5002/api/brands")
       .then((res) => res.json())
       .then((data) => {
         setBrands(data);

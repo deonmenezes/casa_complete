@@ -28,7 +28,7 @@ import {
   AlertDialogAction,
 } from "../components/alert-dialog";
 
-const API_BASE = import.meta.env.VITE_API_URL || "https://casa-backend-uf0h.onrender.com/api";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5002/api";
 
 /* ---------------- Types ---------------- */
 interface Product {
@@ -285,20 +285,41 @@ const CheckoutPage: React.FC = () => {
     paymentId?: string
   ) => {
     try {
+      console.log('📦 Creating order with data:', {
+        user: userData?._id,
+        products: cartData.items,
+        address: deliveryAddress,
+        paymentStatus,
+        paymentId
+      });
+
+      const orderData = {
+        user: userData?._id,
+        products: cartData.items.map(item => ({
+          product: item.product._id,
+          quantity: item.quantity,
+          price: parseFloat(item.product.price.$numberDecimal) || 1
+        })),
+        address: deliveryAddress,
+        estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        paymentStatus,
+        deliveryStatus: "pending",
+        totalAmount: cartData.items.reduce((sum, item) => sum + (parseFloat(item.product.price.$numberDecimal) || 1) * item.quantity, 0),
+        paymentId,
+        // Add any other required fields
+        orderDate: new Date(),
+        status: "confirmed"
+      };
+
+      console.log('📤 Sending order data:', orderData);
+
       const response = await axios.post(
         `${API_BASE}/orders/create`,
-        {
-          user: userData?._id,
-          products: cartData.items,
-          address: deliveryAddress,
-          estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-          paymentStatus,
-          deliveryStatus: "pending",
-          totalAmount: orderTotal,
-          paymentId,
-        },
+        orderData,
         { withCredentials: false }
       );
+      
+      console.log('✅ Order created successfully:', response.data);
       return response.data;
     } catch (error: any) {
       console.error("Error creating order:", error.response?.data || error.message);
@@ -309,7 +330,7 @@ const CheckoutPage: React.FC = () => {
   const deleteCart = async () => {
     try {
       const response = await axios.delete(`${API_BASE}/cart/delete`, {
-        data: { phone: userData?.phoneNumber },
+        data: { email: userData?.email },
         withCredentials: false,
       });
       console.log("Cart deleted:", response.data);
@@ -329,7 +350,7 @@ const CheckoutPage: React.FC = () => {
 
       const paymentOrderResponse = await axios.post(
         `${API_BASE}/payments/create-order`,
-        { amount: orderTotal, currency: "INR", receipt: "order_" + Date.now() },
+        { amount: cart.totalAmount * 100, currency: "INR", receipt: "order_" + Date.now() },
         { withCredentials: false }
       );
 
@@ -373,7 +394,7 @@ const CheckoutPage: React.FC = () => {
                   state: {
                     orderId: "ORD" + Date.now(),
                     items: orderItems,
-                    total: orderTotal,
+                    total: cart.totalAmount,
                     address: selected,
                     paymentId: response.razorpay_payment_id,
                   },

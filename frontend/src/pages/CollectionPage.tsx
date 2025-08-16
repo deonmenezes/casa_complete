@@ -30,7 +30,7 @@ const CollectionPage: React.FC = () => {
     const fetchBrands = async () => {
       setLoadingBrands(true);
       try {
-        const res = await axios.get('https://casa-backend-uf0h.onrender.com/api/brands');
+        const res = await axios.get('http://localhost:5002/api/brands');
         const data = res.data;
         setBrands(data.filter((b: Brand) => b.is_active));
       } catch (err) {
