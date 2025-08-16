@@ -296,9 +296,6 @@ function Deck() {
     try {
       if (!userData._id) return; // or navigate('/profile');
 
-<<<<<<< HEAD
-      const response = await fetch(`http://localhost:5002/api/wishlist/${userData._id}`);
-=======
       const userId = userData._id;
 
       console.log("🔍 Loading curated list for userId:", userId);
@@ -311,7 +308,6 @@ function Deck() {
         }
       );
 
->>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
       if (response.ok) {
         const data = await response.json();
         const ids = data.map((item: any) => item.product._id);
