@@ -39,7 +39,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
     setFullEmail(email);
 
     try {
-      const res = await fetch('http://https://casa-backend-uf0h.onrender.com/api/users/generate-otp', {
+      const res = await fetch('https://casa-backend-uf0h.onrender.com/api/users/generate-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,11 +99,11 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
       try {
         // CHECK IF USER EXISTS: Query backend to see if this is a returning user
         console.log('🔍 Checking user existence for phone:', fullPhoneNumber);
-        const response = await fetch(`http://https://casa-backend-uf0h.onrender.com/api/users?phone=${encodeURIComponent(fullPhoneNumber)}`);
+        const response = await fetch(`https://casa-backend-uf0h.onrender.com/api/users?phone=${encodeURIComponent(fullPhoneNumber)}`);
         const users = await response.json();
 
         console.log('📞 API Response:', {
-          url: `http://https://casa-backend-uf0h.onrender.com/api/users?phone=${encodeURIComponent(fullPhoneNumber)}`,
+          url: `https://casa-backend-uf0h.onrender.com/api/users?phone=${encodeURIComponent(fullPhoneNumber)}`,
           responseStatus: response.status,
           usersCount: users.length,
           users: users

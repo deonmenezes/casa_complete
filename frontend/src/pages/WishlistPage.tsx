@@ -20,7 +20,7 @@ const WishlistPage: React.FC = () => {
 <<<<<<< HEAD
         const res = await axios.get(`http://localhost:5002/api/wishlist/${userData._id}`);
 =======
-        const res = await axios.get(`http://https://casa-backend-uf0h.onrender.com/api/wishlist/${userId}`);
+        const res = await axios.get(`https://casa-backend-uf0h.onrender.com/api/wishlist/${userId}`);
 >>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
         setWishlist(res.data);
       } catch (error) {

@@ -28,7 +28,7 @@ import {
   AlertDialogAction,
 } from "../components/alert-dialog";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://https://casa-backend-uf0h.onrender.com/api";
+const API_BASE = import.meta.env.VITE_API_URL || "https://casa-backend-uf0h.onrender.com/api";
 
 /* ---------------- Types ---------------- */
 interface Product {
