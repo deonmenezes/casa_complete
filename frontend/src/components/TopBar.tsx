@@ -24,10 +24,15 @@ const TopBar: React.FC = () => {
 
   const loadWishlist = async () => {
     try {
+<<<<<<< HEAD
       const userId = userData?._id;
       if (!userId) return;
       
       const res = await fetch(`http://localhost:5002/api/wishlist/${userId}`);
+=======
+      const userId = userData?._id || "dummyUserId";
+      const res = await fetch(`http://https://casa-backend-uf0h.onrender.com/api/curatedlist/${userId}`);
+>>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
       if (res.ok) {
         const data = await res.json();
         const ids = data.map((item: any) => item.product._id);

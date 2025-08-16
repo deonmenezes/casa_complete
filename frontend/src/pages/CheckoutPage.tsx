@@ -28,7 +28,11 @@ import {
   AlertDialogAction,
 } from "../components/alert-dialog";
 
+<<<<<<< HEAD
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5002/api";
+=======
+const API_BASE = import.meta.env.VITE_API_URL || "http://https://casa-backend-uf0h.onrender.com/api";
+>>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
 
 /* ---------------- Types ---------------- */
 interface Product {
@@ -285,6 +289,7 @@ const CheckoutPage: React.FC = () => {
     paymentId?: string
   ) => {
     try {
+<<<<<<< HEAD
       console.log('📦 Creating order with data:', {
         user: userData?._id,
         products: cartData.items,
@@ -320,6 +325,22 @@ const CheckoutPage: React.FC = () => {
       );
       
       console.log('✅ Order created successfully:', response.data);
+=======
+      const response = await axios.post(
+        `${API_BASE}/orders/create`,
+        {
+          user: userData?._id,
+          products: cartData.items,
+          address: deliveryAddress,
+          estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+          paymentStatus,
+          deliveryStatus: "pending",
+          totalAmount: orderTotal,
+          paymentId,
+        },
+        { withCredentials: false }
+      );
+>>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
       return response.data;
     } catch (error: any) {
       console.error("Error creating order:", error.response?.data || error.message);
@@ -330,7 +351,11 @@ const CheckoutPage: React.FC = () => {
   const deleteCart = async () => {
     try {
       const response = await axios.delete(`${API_BASE}/cart/delete`, {
+<<<<<<< HEAD
         data: { email: userData?.email },
+=======
+        data: { phone: userData?.phoneNumber },
+>>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
         withCredentials: false,
       });
       console.log("Cart deleted:", response.data);
@@ -350,7 +375,11 @@ const CheckoutPage: React.FC = () => {
 
       const paymentOrderResponse = await axios.post(
         `${API_BASE}/payments/create-order`,
+<<<<<<< HEAD
         { amount: cart.totalAmount * 100, currency: "INR", receipt: "order_" + Date.now() },
+=======
+        { amount: orderTotal, currency: "INR", receipt: "order_" + Date.now() },
+>>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
         { withCredentials: false }
       );
 
@@ -394,7 +423,11 @@ const CheckoutPage: React.FC = () => {
                   state: {
                     orderId: "ORD" + Date.now(),
                     items: orderItems,
+<<<<<<< HEAD
                     total: cart.totalAmount,
+=======
+                    total: orderTotal,
+>>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
                     address: selected,
                     paymentId: response.razorpay_payment_id,
                   },

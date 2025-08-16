@@ -296,7 +296,22 @@ function Deck() {
     try {
       if (!userData._id) return; // or navigate('/profile');
 
+<<<<<<< HEAD
       const response = await fetch(`http://localhost:5002/api/wishlist/${userData._id}`);
+=======
+      const userId = userData._id;
+
+      console.log("🔍 Loading curated list for userId:", userId);
+      const response = await fetch(
+        `http://https://casa-backend-uf0h.onrender.com/api/curatedlist/${userId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+>>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
       if (response.ok) {
         const data = await response.json();
         const ids = data.map((item: any) => item.product._id);
@@ -371,7 +386,11 @@ function Deck() {
 
       if (isCurrentlyInWishlist) {
         const response = await fetch(
+<<<<<<< HEAD
           "http://localhost:5002/api/wishlist/remove",
+=======
+          "http://https://casa-backend-uf0h.onrender.com/api/curatedlist/remove",
+>>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
           {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
@@ -393,7 +412,11 @@ function Deck() {
         }
       } else {
         const response = await fetch(
+<<<<<<< HEAD
           "http://localhost:5002/api/wishlist/add",
+=======
+          "http://https://casa-backend-uf0h.onrender.com/api/curatedlist/add",
+>>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },

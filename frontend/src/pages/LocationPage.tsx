@@ -5,7 +5,11 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 /* -------------------------------- Config -------------------------------- */
+<<<<<<< HEAD
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5002/api";
+=======
+const API_BASE = import.meta.env.VITE_API_URL || "http://https://casa-backend-uf0h.onrender.com/api";
+>>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
 
 /* -------- Google Maps: robust loader (base + places via importLibrary) --- */
 let mapsBasePromise: Promise<void> | null = null;

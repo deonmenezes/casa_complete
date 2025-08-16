@@ -307,7 +307,7 @@ const AddProduct = () => {
         stock: Number(formData.stock)
       };
 
-      const response = await fetch(`http://localhost:5002/api/products/update/${editData._id}`, {
+      const response = await fetch(`http://https://casa-backend-uf0h.onrender.com/api/products/update/${editData._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -352,7 +352,7 @@ const AddProduct = () => {
         stock: Number(formData.stock)
       };
 
-      const response = await fetch('http://localhost:5002/api/products/create', {
+      const response = await fetch('http://https://casa-backend-uf0h.onrender.com/api/products/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

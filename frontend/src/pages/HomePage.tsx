@@ -142,13 +142,13 @@ const HomePage: React.FC = () => {
     const fetchBrands = async () => {
       setLoadingBrands(true);
       try {
-        const allRes = await fetch("http://localhost:5002/api/brands");
+        const allRes = await fetch("http://https://casa-backend-uf0h.onrender.com/api/brands");
         if (!allRes.ok) throw new Error(`HTTP error! status: ${allRes.status}`);
         const allData: Brand[] = await allRes.json();
         const activeAllBrands = allData.filter(brand => brand.is_active);
         setAllBrands(activeAllBrands);
 
-        const latestRes = await fetch("http://localhost:5002/api/brands?sort=latest");
+        const latestRes = await fetch("http://https://casa-backend-uf0h.onrender.com/api/brands?sort=latest");
         if (!latestRes.ok) throw new Error(`HTTP error! status: ${latestRes.status}`);
         const latestData: Brand[] = await latestRes.json();
         const activeLatestBrands = latestData.filter(brand => brand.is_active);
@@ -168,7 +168,7 @@ const HomePage: React.FC = () => {
     const fetchCategories = async () => {
       setLoadingCategories(true);
       try {
-        const response = await axios.get('http://localhost:5002/api/categories');
+        const response = await axios.get('http://https://casa-backend-uf0h.onrender.com/api/categories');
         const data = response.data;
         // console.log('Fetched categories:', data);
 
@@ -213,7 +213,7 @@ const HomePage: React.FC = () => {
 
   const handleCategoryClick = async (categoryId: string) => {
     try {
-      const res = await fetch(`http://localhost:5002/api/products/category?category=${categoryId}`);
+      const res = await fetch(`http://https://casa-backend-uf0h.onrender.com/api/products/category?category=${categoryId}`);
       if (!res.ok) throw new Error('Failed to fetch products');
       let products = await res.json();
       products = products.map((p: any) => ({ ...p, id: p._id }));
