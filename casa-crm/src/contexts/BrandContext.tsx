@@ -63,7 +63,7 @@ export const BrandProvider = ({ children }: { children: ReactNode }) => {
 
   const loginBrand = async (email: string, password: string) => {
     try {
-        const response = await axios.post('http://https://casa-backend-uf0h.onrender.com/api/brands/login', {email, password})
+        const response = await axios.post('https://casa-backend-uf0h.onrender.com/api/brands/login', {email, password})
         setBrand(response.data.brand)
         return response.data.success
     } catch (error: any){
