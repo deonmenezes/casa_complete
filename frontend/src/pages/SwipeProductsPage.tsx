@@ -382,11 +382,7 @@ function Deck() {
 
       if (isCurrentlyInWishlist) {
         const response = await fetch(
-<<<<<<< HEAD
-          "http://localhost:5002/api/wishlist/remove",
-=======
           "http://https://casa-backend-uf0h.onrender.com/api/curatedlist/remove",
->>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
           {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
@@ -408,11 +404,7 @@ function Deck() {
         }
       } else {
         const response = await fetch(
-<<<<<<< HEAD
-          "http://localhost:5002/api/wishlist/add",
-=======
           "http://https://casa-backend-uf0h.onrender.com/api/curatedlist/add",
->>>>>>> ade6ad192c2a962557a2f4760de75691b79847ca
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
