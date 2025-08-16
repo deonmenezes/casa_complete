@@ -158,16 +158,16 @@ const ProfilePage: React.FC = () => {
               <>
                 {/* ENHANCED USER DISPLAY: Shows collected name from onboarding */}
                 <h2 className="text-2xl font-bold mb-1">
-                  {userData.name || `User ${userData.phoneNumber?.slice(-4)}` || 'User'}
+                  {userData.name || `User ${userData.email?.split('@')[0] || 'User'}` || 'User'}
                 </h2>
-                {/* PHONE NUMBER DISPLAY: Always show phone number */}
+                {/* EMAIL DISPLAY: Show email as primary identifier */}
                 <p className="text-gray-300 text-sm mb-1">
-                  {userData.phoneNumber || 'No phone number'}
+                  {userData.email || 'No email address'}
                 </p>
-                {/* EMAIL DISPLAY: Show collected email if available */}
-                {userData.email && (
+                {/* PHONE NUMBER DISPLAY: Show phone if available */}
+                {userData.phoneNumber && (
                   <p className="text-gray-300 text-sm mb-1">
-                    {userData.email}
+                    {userData.phoneNumber}
                   </p>
                 )}
                 <p className="text-gray-300 text-sm mb-4">Lvl 00</p>

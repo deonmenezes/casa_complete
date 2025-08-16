@@ -9,7 +9,7 @@ const TopBar: React.FC = () => {
   const navigate = useNavigate();
   const { userData } = useUser();
 
-  const [curatedItems, setCuratedItems] = useState<Set<string>>(new Set());
+  const [wishlistItems, setWishlistItems] = useState<Set<string>>(new Set());
   const [liveAddress, setLiveAddress] = useState("Delivery Location");
 
   useEffect(() => {
@@ -19,36 +19,38 @@ const TopBar: React.FC = () => {
 
   const handleSearch = () => navigate("/search");
   const handleProfile = () => navigate("/profile");
-  const handleCuratedList = () => navigate("/curatedList");
+  const handleWishlist = () => navigate("/wishlist");
   const handleLocationClick = () => navigate("/location");
 
-  const loadCuratedList = async () => {
+  const loadWishlist = async () => {
     try {
-      const userId = userData?._id || "dummyUserId";
-      const res = await fetch(`http://localhost:5002/api/curatedlist/${userId}`);
+      const userId = userData?._id;
+      if (!userId) return;
+      
+      const res = await fetch(`http://localhost:5002/api/wishlist/${userId}`);
       if (res.ok) {
         const data = await res.json();
-        const ids = data.products.map((p: any) => p._id);
-        setCuratedItems(new Set(ids));
+        const ids = data.map((item: any) => item.product._id);
+        setWishlistItems(new Set(ids));
       }
     } catch (err) {
-      console.error("Error loading curated list:", err);
+      console.error("Error loading wishlist:", err);
     }
   };
 
   useEffect(() => {
     if (userData?.isLoggedIn) {
-      loadCuratedList();
+      loadWishlist();
       // ✅ Listen for changes from anywhere in the app
-    const handleUpdate = () => {
-      loadCuratedList();
-    };
+      const handleUpdate = () => {
+        loadWishlist();
+      };
 
-    window.addEventListener("curatedListUpdated", handleUpdate);
+      window.addEventListener("wishlistUpdated", handleUpdate);
 
-    return () => {
-      window.removeEventListener("curatedListUpdated", handleUpdate);
-    };
+      return () => {
+        window.removeEventListener("wishlistUpdated", handleUpdate);
+      };
     }
   }, [userData?.isLoggedIn]);
 
@@ -79,7 +81,7 @@ const TopBar: React.FC = () => {
               </button>
 
               <motion.button
-                onClick={handleCuratedList}
+                onClick={handleWishlist}
                 className="relative h-10 w-10 grid place-items-center rounded-full hover:bg-white/5 active:bg-white/10"
                 aria-label="Wishlist"
                 whileHover={{ scale: 1.04 }}
@@ -87,15 +89,15 @@ const TopBar: React.FC = () => {
               >
                 <Heart
                   size={20}
-                  className={curatedItems.size > 0 ? "text-red-500 fill-current" : "text-white"}
+                  className={wishlistItems.size > 0 ? "text-red-500 fill-current" : "text-white"}
                 />
-                {curatedItems.size > 0 && (
+                {wishlistItems.size > 0 && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-red-500 text-[10px] leading-5 text-white text-center"
                   >
-                    {curatedItems.size > 99 ? "99+" : curatedItems.size}
+                    {wishlistItems.size > 99 ? "99+" : wishlistItems.size}
                   </motion.span>
                 )}
               </motion.button>

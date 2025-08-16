@@ -8,141 +8,76 @@ import OtpInput from './OtpInput';
 interface LoginPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  onContinue?: (phoneNumber: string) => void;
+  onContinue?: (email: string) => void; // Changed from phoneNumber to email
 }
 
 const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) => {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [countryCode, setCountryCode] = useState('+91');
-  const [phoneError, setPhoneError] = useState('');
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [email, setEmail] = useState(''); // Changed from phoneNumber
+  const [emailError, setEmailError] = useState(''); // Changed from phoneError
+  const [step, setStep] = useState<'email' | 'otp'>('email'); // Changed from 'phone' to 'email'
   const [generatedOtp, setGeneratedOtp] = useState('');
-  const [fullPhoneNumber, setFullPhoneNumber] = useState('');
+  const [fullEmail, setFullEmail] = useState(''); // Changed from fullPhoneNumber
 
   const { setUserData } = useUser();
   const navigate = useNavigate();
 
-
-
-  const getMinPhoneLength = (countryCode: string) => {
-    switch (countryCode) {
-      case '+1': return 10; // US/Canada
-      case '+44': return 10; // UK (minimum)
-      case '+86': return 11; // China
-      case '+91': return 10; // India
-      default: return 7; // International minimum
-    }
+  // Email validation function
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    return emailRegex.test(email);
   };
 
-  const getPhoneNumberLimit = (countryCode: string) => {
-    switch (countryCode) {
-      case '+1': return 10; // US/Canada
-      case '+44': return 11; // UK (maximum)
-      case '+86': return 11; // China
-      case '+91': return 10; // India
-      default: return 15; // International maximum
-    }
-  };
-
-  const validatePhoneNumber = (phone: string, countryCode: string) => {
-    if (!phone.trim()) {
-      return 'Phone number is required';
-    }
-    
-    if (!/^\d+$/.test(phone)) {
-      return 'Phone number should contain only digits';
-    }
-
-    const minLength = getMinPhoneLength(countryCode);
-    const maxLength = getPhoneNumberLimit(countryCode);
-
-    if (phone.length < minLength) {
-      return `Phone number must be at least ${minLength} digits`;
-    }
-
-    if (phone.length > maxLength) {
-      return `Phone number cannot exceed ${maxLength} digits`;
-    }
-
-    // Country-specific validation
-    switch (countryCode) {
-      case '+91': // India
-        if (!phone.match(/^[6-9]\d{9}$/)) {
-          return 'Invalid Indian mobile number (should start with 6, 7, 8, or 9)';
-        }
-        break;
-      case '+1': // US/Canada
-        if (!phone.match(/^[2-9]\d{9}$/)) {
-          return 'Invalid US/Canada number (area code cannot start with 0 or 1)';
-        }
-        break;
-    }
-
-    return '';
-  };
-
-  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    const limit = getPhoneNumberLimit(countryCode);
-    
-    if (value.length <= limit) {
-      setPhoneNumber(value);
-      // Clear error when user starts typing
-      if (phoneError) {
-        setPhoneError('');
-      }
-    }
-  };
-
-  const handleCountryCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCountryCode(e.target.value);
-    setPhoneNumber(''); // Clear phone number when country changes
-    setPhoneError(''); // Clear any existing errors
-  };
+  const isEmailValid = validateEmail(email);
 
   const handleContinue = async () => {
-    const validationError = validatePhoneNumber(phoneNumber, countryCode);
-
-    if (validationError) {
-      setPhoneError(validationError);
+    if (!isEmailValid) {
+      setEmailError('Please enter a valid email address');
       return;
     }
 
-    const fullPhone = `${countryCode}${phoneNumber}`;
+    setEmailError('');
+    setFullEmail(email);
 
     try {
-      const res = await fetch('http://localhost:5002/api/users/generate-otp', {
+      // Generate OTP for email
+      const response = await fetch('http://localhost:5002/api/users/generate-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ phone: fullPhone }),
+        body: JSON.stringify({ email }),
       });
 
-      // Check if response is ok first
-      if (res.ok) {
-        const data = await res.json();
-        console.log('✅ OTP sent:', data.otp);
-        setGeneratedOtp(data.otp);
-        setFullPhoneNumber(fullPhone);
-        setStep('otp');
-        setPhoneError(''); // Clear any errors on success
-      } else {
-        // Handle non-JSON error responses
-        let errorMessage = 'Failed to send OTP';
-        try {
-          const data = await res.json();
-          errorMessage = data.error || errorMessage;
-        } catch (jsonError) {
-          // If response is not JSON, use status text
-          errorMessage = `Server error: ${res.status} ${res.statusText}`;
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success) {
+          // Email sent successfully - OTP is included in response for development
+          setGeneratedOtp(data.otp?.toString() || '');
+          setStep('otp');
+          console.log('📧 OTP sent to email:', email, 'OTP:', data.otp);
+          
+          // Show success message
+          setEmailError(''); // Clear any previous errors
+        } else {
+          // Email failed but OTP generated (development fallback)
+          if (data.otp) {
+            setGeneratedOtp(data.otp.toString());
+            setStep('otp');
+            console.log('📧 OTP generated (email failed):', data.otp);
+            // Show warning that email failed
+            setEmailError('Email service unavailable, but OTP generated. Check console for OTP.');
+          } else {
+            setEmailError(data.error || 'Failed to generate OTP');
+          }
         }
-        console.error('❌ Server error:', errorMessage);
-        setPhoneError(errorMessage);
+      } else {
+        const errorData = await response.json();
+        setEmailError(errorData.error || 'Failed to generate OTP');
       }
-    } catch (err) {
-      console.error('❌ Network error:', err);
-      setPhoneError('Network error. Please check if the backend server is running.');
+    } catch (error) {
+      console.error('Error generating OTP:', error);
+      setEmailError('Network error. Please try again.');
     }
   };
 
@@ -152,40 +87,45 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
    * USER DETECTION: Checks if user exists in backend to determine if they're new or returning
    */
   const handleOtpVerify = async (enteredOtp: string) => {
-    console.log('🔍 Verifying OTP:', enteredOtp, 'against', generatedOtp);
+    console.log('🔍 Verifying OTP:', {
+      enteredOtp,
+      generatedOtp,
+      fullEmail,
+      otpMatch: enteredOtp === generatedOtp.toString()
+    });
 
     if (enteredOtp === generatedOtp.toString()) {
       console.log('✅ OTP verified successfully');
 
       try {
         // CHECK IF USER EXISTS: Query backend to see if this is a returning user
-        console.log('🔍 Checking user existence for phone:', fullPhoneNumber);
-        const response = await fetch(`http://localhost:5002/api/users?phone=${encodeURIComponent(fullPhoneNumber)}`);
+        console.log('🔍 Checking user existence for email:', fullEmail);
+        const response = await fetch(`http://localhost:5002/api/users/by-email?email=${encodeURIComponent(fullEmail)}`);
         const users = await response.json();
 
-        console.log('📞 API Response:', {
-          url: `http://localhost:5002/api/users?phone=${encodeURIComponent(fullPhoneNumber)}`,
+        console.log('📧 API Response:', {
+          url: `http://localhost:5002/api/users/by-email?email=${encodeURIComponent(fullEmail)}`,
           responseStatus: response.status,
           usersCount: users.length,
           users: users
         });
 
-        const existingUser = users.find((user: any) => user.phone === fullPhoneNumber);
+        const existingUser = users.find((user: any) => user.email === fullEmail);
         const isNewUser = !existingUser;
 
         console.log('User check result:', {
-          fullPhoneNumber,
+          fullEmail,
           existingUser,
           isNewUser,
-          userPhones: users.map((u: any) => u.phone)
+          userEmails: users.map((u: any) => u.email)
         });
 
         // ENHANCED USER CONTEXT: Update with login status and user detection
         setUserData({
           _id: existingUser?._id,
-          phoneNumber: fullPhoneNumber,
+          email: fullEmail,
           name: existingUser?.display_name || undefined,
-          email: existingUser?.email || undefined,
+          phoneNumber: existingUser?.phone || undefined,
           isLoggedIn: true,
           isNewUser: isNewUser,
           onboardingData: existingUser ? {
@@ -200,7 +140,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
 
         // Call the original onContinue if provided (for backward compatibility)
         if (onContinue) {
-          onContinue(fullPhoneNumber);
+          onContinue(fullEmail);
         }
 
         // SMART NAVIGATION: Only redirect to onboarding if user is new
@@ -212,19 +152,25 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
           navigate('/');
         }
 
+        // REMOVED: User creation logic - let onboarding handle this
+        // The onboarding process will create the user with complete data
+
       } catch (error) {
-        console.error('Error checking user existence:', error);
+        console.error('❌ Error checking user existence:', error);
+        
         // FALLBACK: If backend check fails, treat as new user
         setUserData({
-          phoneNumber: fullPhoneNumber,
+          email: fullEmail,
           isLoggedIn: true,
           isNewUser: true,
-          onboardingData: {}
+          name: undefined,
+          phoneNumber: undefined,
+          _id: undefined
         });
 
         handleClose();
         if (onContinue) {
-          onContinue(fullPhoneNumber);
+          onContinue(fullEmail);
         }
         navigate('/onboarding');
       }
@@ -234,23 +180,52 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
     }
   };
 
-  const handleResendOtp = () => {
-    handleContinue();
+  const handleResendOtp = async () => {
+    try {
+      const response = await fetch('http://localhost:5002/api/users/generate-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: fullEmail }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success) {
+          // Email sent successfully - update OTP for new verification
+          if (data.otp) {
+            setGeneratedOtp(data.otp.toString());
+            console.log('📧 New OTP sent to email:', fullEmail, 'New OTP:', data.otp);
+          }
+        } else {
+          // Email failed but OTP generated (development fallback)
+          if (data.otp) {
+            setGeneratedOtp(data.otp.toString());
+            console.log('📧 New OTP generated (email failed):', data.otp);
+          }
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to resend OTP:', errorData.error);
+      }
+    } catch (error) {
+      console.error('Error resending OTP:', error);
+    }
   };
 
   const handleBack = () => {
-    setStep('phone');
+    setStep('email');
   };
 
   const handleClose = () => {
-    setStep('phone');
-    setPhoneNumber('');
+    setStep('email');
+    setEmail('');
     setGeneratedOtp('');
-    setFullPhoneNumber('');
+    setFullEmail('');
     onClose();
   };
-
-  const isPhoneValid = phoneNumber.trim() && !validatePhoneNumber(phoneNumber, countryCode);
 
   if (!isOpen) return null;
 
@@ -267,49 +242,33 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
         </button>
 
         <div className="mb-8 pt-4">
-          {step === 'phone' ? (
+          {step === 'email' ? (
             <>
               <h2 className="text-2xl font-bold text-white mb-2">Login/Signup</h2>
               
               <div className="mb-6">
                 <label className="block text-white font-medium mb-4">
-                  Phone Number
+                  Email Address
                 </label>
 
-                <div className="flex bg-gray-700 rounded-lg overflow-hidden">
-                  <div className="flex items-center px-4 py-3 bg-gray-700 border-r border-gray-600">
-                    <select
-                      value={countryCode}
-                      onChange={handleCountryCodeChange}
-                      className="bg-transparent text-white text-sm font-medium outline-none cursor-pointer"
-                    >
-                      <option value="+91" className="bg-gray-700">+91</option>
-                      <option value="+1" className="bg-gray-700">+1</option>
-                      <option value="+44" className="bg-gray-700">+44</option>
-                      <option value="+86" className="bg-gray-700">+86</option>
-                    </select>
-                  </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email Address"
+                  className={`w-full px-4 py-3 bg-gray-700 text-white placeholder-gray-400 outline-none text-base rounded-lg ${
+                    emailError ? 'border-2 border-red-500' : ''
+                  }`}
+                />
 
-                  <input
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={handlePhoneNumberChange}
-                    placeholder="Phone Number"
-                    className={`flex-1 px-4 py-3 bg-gray-700 text-white placeholder-gray-400 outline-none text-base ${
-                      phoneError ? 'border-2 border-red-500' : ''
-                    }`}
-                    maxLength={getPhoneNumberLimit(countryCode)}
-                  />
-                </div>
-
-                {phoneError && (
+                {emailError && (
                   <p className="text-red-400 text-sm mt-2">
-                    {phoneError}
+                    {emailError}
                   </p>
                 )}
 
                 <p className="text-gray-400 text-sm mt-3">
-                  A verification code will be sent to this phone number
+                  A verification code will be sent to this email address
                 </p>
               </div>
 
@@ -328,9 +287,9 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
 
               <button
                 onClick={handleContinue}
-                disabled={!isPhoneValid}
+                disabled={!isEmailValid}
                 className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-200 ${
-                  isPhoneValid
+                  isEmailValid
                     ? 'bg-gray-300 text-gray-900 hover:bg-white active:scale-95'
                     : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 }`}
@@ -340,7 +299,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onContinue }) 
             </>
           ) : (
             <OtpInput
-              phoneNumber={fullPhoneNumber}
+              phoneNumber={fullEmail} // Pass fullEmail to OtpInput (will contain email)
               onBack={handleBack}
               onVerify={handleOtpVerify}
               onResend={handleResendOtp}

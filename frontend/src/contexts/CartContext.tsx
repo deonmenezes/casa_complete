@@ -31,7 +31,7 @@ export interface CartItem {
 // Cart data interface
 export interface CartData {
   _id?: string;
-  phone: string;
+  email: string; // Changed from phone to email
   items: CartItem[];
   totalItems: number;
   totalAmount: number;
@@ -61,7 +61,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 // Default empty cart
 const defaultCart: CartData = {
-  phone: '',
+  email: '', // Changed from phone to email
   items: [],
   totalItems: 0,
   totalAmount: 0
@@ -76,8 +76,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // API base URL
   const API_BASE = 'http://localhost:5002/api/cart';
 
-  // Get phone number (with fallback)
-  const getPhoneNumber = () => userData.phoneNumber;
+  // Get email (with fallback to phone)
+  const getEmail = () => userData.email || userData.phoneNumber;
 
   // Fetch cart from backend
   const fetchCart = async () => {
@@ -88,15 +88,15 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       setError(null);
       
-      const phoneNumber = getPhoneNumber();
+      const email = getEmail();
       
-      if(!phoneNumber || phoneNumber === undefined){
+      if(!email || email === undefined){
         return
       }
 
-      console.log('🛒 Fetching cart for phone:', phoneNumber);
+      console.log('🛒 Fetching cart for email:', email);
       
-      const response = await fetch(`${API_BASE}?phone=${encodeURIComponent(phoneNumber)}`);
+      const response = await fetch(`${API_BASE}?email=${encodeURIComponent(email)}`);
       const result = await response.json();
       
       console.log('🛒 Cart API response:', result);
@@ -122,16 +122,16 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       setError(null);
       
-      const phoneNumber = getPhoneNumber();
+      const email = getEmail();
       console.log(`🛒 Adding product ${productId} to cart (${quantity}x, size: ${size})`);
       
-      const response = await fetch(`${API_BASE}/items`, {
+      const response = await fetch(`${API_BASE}/add`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone: phoneNumber,
+          email,
           productId,
           quantity,
           size
@@ -142,15 +142,15 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       if (result.success) {
         setCart(result.data.cart);
-        console.log('✅ Product added to cart. Total items:', result.data.cart.totalItems);
+        console.log('✅ Product added to cart');
       } else {
-        setError(result.error || 'Failed to add to cart');
-        console.error('❌ Failed to add to cart:', result.error);
+        setError(result.error || 'Failed to add product to cart');
+        console.error('❌ Failed to add product to cart:', result.error);
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error('❌ Error adding to cart:', error);
-      setError('Failed to add to cart');
+      console.error('❌ Error adding product to cart:', error);
+      setError('Failed to add product to cart');
       throw error;
     } finally {
       setLoading(false);
@@ -163,16 +163,16 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       setError(null);
       
-      const phoneNumber = getPhoneNumber();
+      const email = getEmail();
       console.log(`🛒 Updating cart item ${productId} (${size}) to quantity ${quantity}`);
       
-      const response = await fetch(`${API_BASE}/items`, {
+      const response = await fetch(`${API_BASE}/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone: phoneNumber,
+          email,
           productId,
           size,
           quantity
@@ -183,15 +183,15 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       if (result.success) {
         setCart(result.data.cart);
-        console.log('✅ Cart item updated. Total items:', result.data.cart.totalItems);
+        console.log('✅ Cart item updated');
       } else {
-        setError(result.error || 'Failed to update cart');
-        console.error('❌ Failed to update cart:', result.error);
+        setError(result.error || 'Failed to update cart item');
+        console.error('❌ Failed to update cart item:', result.error);
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error('❌ Error updating cart:', error);
-      setError('Failed to update cart');
+      console.error('❌ Error updating cart item:', error);
+      setError('Failed to update cart item');
       throw error;
     } finally {
       setLoading(false);
@@ -204,34 +204,34 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       setError(null);
       
-      const phoneNumber = getPhoneNumber();
+      const email = getEmail();
       console.log(`🛒 Removing product ${productId} (${size || 'all sizes'}) from cart`);
       
-      const response = await fetch(`${API_BASE}/items`, {
+      const response = await fetch(`${API_BASE}/remove`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone: phoneNumber,
+          email,
           productId,
           size
         }),
       });
 
       const result = await response.json();
-
+      
       if (result.success) {
         setCart(result.data.cart);
-        console.log('✅ Product removed from cart. Total items:', result.data.cart.totalItems);
+        console.log('✅ Product removed from cart');
       } else {
-        setError(result.error || 'Failed to remove from cart');
-        console.error('❌ Failed to remove from cart:', result.error);
+        setError(result.error || 'Failed to remove product from cart');
+        console.error('❌ Failed to remove product from cart:', result.error);
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error('❌ Error removing from cart:', error);
-      setError('Failed to remove from cart');
+      console.error('❌ Error removing product from cart:', error);
+      setError('Failed to remove product from cart');
       throw error;
     } finally {
       setLoading(false);
@@ -244,7 +244,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       setError(null);
       
-      const phoneNumber = getPhoneNumber();
+      const email = getEmail();
       console.log('🛒 Clearing cart');
       
       const response = await fetch(`${API_BASE}/clear`, {
@@ -253,7 +253,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone: phoneNumber
+          email
         }),
       });
 
@@ -292,10 +292,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Load cart when user changes
   useEffect(() => {
-    if (userData.phoneNumber) {
+    if (getEmail()) {
       fetchCart();
     }
-  }, [userData.phoneNumber]);
+  }, [userData.email, userData.phoneNumber]); // Watch both email and phone
 
   const value: CartContextType = {
     cart,

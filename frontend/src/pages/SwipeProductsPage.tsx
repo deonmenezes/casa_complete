@@ -42,11 +42,10 @@ interface Product {
 // Define props interface for SwipeableCard
 interface SwipeableCardProps {
   product: Product;
-  onSwipe: (productId: string, direction: "left" | "right") => void;
   index: number;
   total: number;
-  curatedItems: Set<string>;
-  onCuratedToggle: (productId: string) => void;
+  wishlistItems: Set<string>;
+  onWishlistToggle: (productId: string) => void;
   addToCart: (productId: string, quantity?: number, size?: string) => void;
 }
 
@@ -56,8 +55,8 @@ function SwipeableCard({
   onSwipe,
   index,
   total,
-  curatedItems,
-  onCuratedToggle,
+  wishlistItems,
+  onWishlistToggle,
   addToCart,
 }: SwipeableCardProps) {
   const navigate = useNavigate();
@@ -176,24 +175,24 @@ function SwipeableCard({
                 <ShoppingCart size={20} />
               </motion.button>
               <motion.button
-                onClick={() => onCuratedToggle(product._id)}
+                onClick={() => onWishlistToggle(product._id)}
                 className={`p-3 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
-                  curatedItems.has(product._id)
+                  wishlistItems.has(product._id)
                     ? "bg-red-500 text-white hover:bg-red-600 ring-2 ring-red-300"
                     : "bg-white/90 text-gray-700 hover:bg-red-100 hover:text-red-500"
                 }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 title={
-                  curatedItems.has(product._id)
-                    ? "Remove from Curated List"
-                    : "Add to Curated List"
+                  wishlistItems.has(product._id)
+                    ? "Remove from Wishlist"
+                    : "Add to Wishlist"
                 }
               >
                 <Heart
                   size={20}
                   className={
-                    curatedItems.has(product._id)
+                    wishlistItems.has(product._id)
                       ? "fill-current text-white"
                       : "hover:fill-current"
                   }
@@ -226,7 +225,7 @@ function Deck() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [addedToCart, setAddedToCart] = useState<Set<string>>(new Set());
-  const [curatedItems, setCuratedItems] = useState<Set<string>>(new Set());
+  const [wishlistItems, setWishlistItems] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreProducts, setHasMoreProducts] = useState(true);
   const [seenProductIds, setSeenProductIds] = useState<Set<string>>(new Set());
@@ -293,48 +292,24 @@ function Deck() {
     loadInitialProducts();
   }, []);
 
-  const loadCuratedList = async () => {
+  const loadWishlist = async () => {
     try {
       if (!userData._id) return; // or navigate('/profile');
 
-      const userId = userData._id;
-
-      console.log("🔍 Loading curated list for userId:", userId);
-      const response = await fetch(
-        `http://localhost:5002/api/curatedlist/${userId}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
+      const response = await fetch(`http://localhost:5002/api/wishlist/${userData._id}`);
       if (response.ok) {
         const data = await response.json();
-        const productIds = data.products.map(
-          (product: { _id: string }) => product._id
-        );
-        setCuratedItems(new Set(productIds));
-        console.log("✅ Loaded curated list:", productIds);
-      } else if (response.status === 404) {
-        // No curated list exists yet, that's fine
-        console.log("📝 No curated list found for user, starting fresh");
-        setCuratedItems(new Set());
+        const ids = data.map((item: any) => item.product._id);
+        setWishlistItems(new Set(ids));
       }
-    } catch (error) {
-      console.error("❌ Error loading curated list:", error);
+    } catch (err) {
+      console.error("Error loading wishlist:", err);
     }
   };
 
-  // Load user's curated list when component mounts
   useEffect(() => {
-    console.log("🔄 SwipeProductsPage: User data changed:", userData);
     if (userData.isLoggedIn) {
-      console.log("✅ User is logged in, loading curated list...");
-      loadCuratedList();
-    } else {
-      console.log("❌ User not logged in, clearing curated items");
-      setCuratedItems(new Set());
+      loadWishlist();
     }
   }, [userData.isLoggedIn]);
 
@@ -373,11 +348,11 @@ function Deck() {
   // const handleBack = () => navigate('/');
   // const handleViewBag = () => navigate('/bag');
 
-  // Handle curated list toggle
-  const handleCuratedToggle = async (productId: string) => {
+  // Handle wishlist toggle
+  const handleWishlistToggle = async (productId: string) => {
     console.log("💖 Heart clicked! Product ID:", productId);
     console.log("👤 User logged in:", userData.isLoggedIn);
-    console.log("📋 Current curated items:", Array.from(curatedItems));
+    console.log("📋 Current wishlist items:", Array.from(wishlistItems));
 
     if (!userData.isLoggedIn) {
       console.log("❌ User not logged in, redirecting to profile");
@@ -387,51 +362,51 @@ function Deck() {
 
     try {
       const userId = userData._id;
-      const isCurrentlyInList = curatedItems.has(productId);
+      const isCurrentlyInWishlist = wishlistItems.has(productId);
 
       // Immediate UI update
-      if (!isCurrentlyInList) {
-        setCuratedItems((prev) => new Set(prev).add(productId));
+      if (!isCurrentlyInWishlist) {
+        setWishlistItems((prev) => new Set(prev).add(productId));
       }
 
-      if (isCurrentlyInList) {
+      if (isCurrentlyInWishlist) {
         const response = await fetch(
-          "http://localhost:5002/api/curatedlist/remove",
+          "http://localhost:5002/api/wishlist/remove",
           {
-            method: "PUT",
+            method: "DELETE",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, productId }),
+            body: JSON.stringify({ user: userId, product: productId }),
           }
         );
 
         if (response.ok) {
-          window.dispatchEvent(new CustomEvent("curatedListUpdated"));
-          console.log("✅ Removed from curated list");
-          setCuratedItems((prev) => {
+          window.dispatchEvent(new CustomEvent("wishlistUpdated"));
+          console.log("✅ Removed from wishlist");
+          setWishlistItems((prev) => {
             const newSet = new Set(prev);
             newSet.delete(productId);
             return newSet;
           });
         } else {
           console.error("❌ Failed to remove");
-          setCuratedItems((prev) => new Set(prev).add(productId));
+          setWishlistItems((prev) => new Set(prev).add(productId));
         }
       } else {
         const response = await fetch(
-          "http://localhost:5002/api/curatedlist/add",
+          "http://localhost:5002/api/wishlist/add",
           {
-            method: "PUT",
+            method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, productId }),
+            body: JSON.stringify({ user: userId, product: productId }),
           }
         );
 
         if (response.ok) {
-          window.dispatchEvent(new CustomEvent("curatedListUpdated"));
-          console.log("✅ Added to curated list");
+          window.dispatchEvent(new CustomEvent("wishlistUpdated"));
+          console.log("✅ Added to wishlist");
         } else {
           console.error("❌ Failed to add");
-          setCuratedItems((prev) => {
+          setWishlistItems((prev) => {
             const newSet = new Set(prev);
             newSet.delete(productId);
             return newSet;
@@ -439,7 +414,7 @@ function Deck() {
         }
       }
     } catch (error) {
-      console.error("❌ Error in curated toggle:", error);
+      console.error("❌ Error in wishlist toggle:", error);
     }
   };
 
@@ -541,8 +516,8 @@ function Deck() {
                 onSwipe={handleSwipe}
                 index={index}
                 total={cards.length}
-                curatedItems={curatedItems}
-                onCuratedToggle={handleCuratedToggle}
+                wishlistItems={wishlistItems}
+                onWishlistToggle={handleWishlistToggle}
                 addToCart={addToCart}
               />
             ))}

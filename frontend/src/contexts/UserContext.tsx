@@ -6,7 +6,7 @@ export interface UserData {
   role: number; // ✅ required
   phoneNumber?: string;
   name?: string;
-  email?: string;
+  email: string; // ✅ Email is now required (primary identifier)
   dateOfBirth?: string;
   gender?: string;
   isLoggedIn: boolean;
@@ -41,7 +41,7 @@ const loadUserDataFromStorage = (): UserData => {
         typeof parsed === 'object' &&
         parsed !== null &&
         typeof parsed.isLoggedIn === 'boolean' &&
-        parsed.idLoggedIn === false
+        parsed.isLoggedIn === true
       ) {
         // ✅ Allow partially valid data if user is logged in
         return {
@@ -49,26 +49,7 @@ const loadUserDataFromStorage = (): UserData => {
           role: typeof parsed.role === 'number' ? parsed.role : -1,
           phoneNumber: parsed.phoneNumber || '',
           name: parsed.name || '',
-          email: parsed.email || '',
-          dateOfBirth: parsed.dateOfBirth || '',
-          gender: parsed.gender || '',
-          isLoggedIn: true,
-          isNewUser: parsed.isNewUser ?? false,
-          onboardingData: parsed.onboardingData || {}
-        };
-      }
-      else if(
-        typeof parsed === 'object' &&
-        parsed !== null &&
-        typeof parsed.isLoggedIn === 'boolean' &&
-        parsed.isLoggedIn === true
-      ) {
-        return {
-          _id: typeof parsed._id === 'string' ? parsed._id : '',
-          role: typeof parsed.role === 'number' ? parsed.role : -1,
-          phoneNumber: parsed.phoneNumber || '',
-          name: parsed.name || '',
-          email: parsed.email || '',
+          email: typeof parsed.email === 'string' ? parsed.email : '', // Email is now primary identifier
           dateOfBirth: parsed.dateOfBirth || '',
           gender: parsed.gender || '',
           isLoggedIn: true,
@@ -86,6 +67,11 @@ const loadUserDataFromStorage = (): UserData => {
   return {
     _id: '',
     role: -1,
+    phoneNumber: '',
+    name: '',
+    email: '', // Email is now required
+    dateOfBirth: '',
+    gender: '',
     isLoggedIn: false,
     isNewUser: false,
     onboardingData: {}
@@ -109,19 +95,31 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [userData]);
 
   const updateOnboardingData = (data: Partial<UserData['onboardingData']>) => {
-    setUserData(prev => ({
-      ...prev,
-      onboardingData: {
-        ...prev.onboardingData,
-        ...data
-      }
-    }));
+    console.log('🔄 Updating onboarding data:', data);
+    console.log('📝 Previous onboarding data:', userData.onboardingData);
+    
+    setUserData(prev => {
+      const updated = {
+        ...prev,
+        onboardingData: {
+          ...prev.onboardingData,
+          ...data
+        }
+      };
+      console.log('✅ New onboarding data:', updated.onboardingData);
+      return updated;
+    });
   };
 
   const logout = () => {
     setUserData({
       _id: '',
       role: -1,
+      phoneNumber: '',
+      name: '',
+      email: '', // Email is now required
+      dateOfBirth: '',
+      gender: '',
       isLoggedIn: false,
       isNewUser: false,
       onboardingData: {}
@@ -131,16 +129,35 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const completeOnboarding = async () => {
     try {
+      // Ensure we have a valid email
+      if (!userData.email) {
+        throw new Error('Email is required to complete onboarding');
+      }
+
       const userDataForBackend = {
-        phone: userData.phoneNumber,
-        email: userData.email || `${userData.phoneNumber?.replace(/[^0-9]/g, '')}@temp.casa`,
-        display_name: userData.name || `User_${userData.phoneNumber?.slice(-4)}`,
+        email: userData.email, // Email is required
+        phone: userData.phoneNumber || undefined, // Phone is optional
+        display_name: userData.name || userData.email.split('@')[0], // Use email prefix if no name
         interests: userData.onboardingData?.styleInterests || [],
         ml_preferences: userData.onboardingData?.preferredFits || [],
         age: userData.onboardingData?.ageRange?.includes('Gen Z') ? 22 :
              userData.onboardingData?.ageRange?.includes('Millennial') ? 30 : 25,
-        last_login: new Date()
+        last_login: new Date(),
+        // Add any other required fields from the user model
+        oauth_provider: null,
+        oauth_id: null,
+        avatar_url: null,
+        gender: null,
+        social_each_godson: null,
+        is_admin: false,
+        is_brand_user: false,
+        followed_brand_ids: [],
+        delivery_addresses: [],
+        payment_methods: [],
+        shipment: []
       };
+
+      console.log('📤 Sending user data to backend:', userDataForBackend);
 
       const response = await axios.post('http://localhost:5002/api/users', userDataForBackend);
       console.log('✅ User registered successfully:', response.data);
@@ -150,7 +167,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isNewUser: false,
         isLoggedIn: true,
         _id: response.data._id,
-        role: response.data.role
+        role: response.data.role || 0
       }));
     } catch (error: any) {
       console.error('❌ Error registering user:', error);

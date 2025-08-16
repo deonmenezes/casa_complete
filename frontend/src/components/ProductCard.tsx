@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Heart } from "lucide-react";
+import { useUser } from "../contexts/UserContext";
 
 interface Product {
   _id: string;
@@ -25,6 +27,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onAddToCart = () => {},
 }) => {
   const navigate = useNavigate();
+  const { userData } = useUser();
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   const price = parseFloat(product.price?.$numberDecimal || "0");
 
   const formatINR = (val: number) =>
@@ -32,6 +37,69 @@ const ProductCard: React.FC<ProductCardProps> = ({
       style: "currency",
       currency: product.currency || "INR",
     }).format(val);
+
+  // Check if product is in wishlist
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (!userData?._id) return;
+      
+      try {
+        const res = await fetch(`http://localhost:5002/api/wishlist/${userData._id}`);
+        if (res.ok) {
+          const wishlist = await res.json();
+          const isInList = wishlist.some((item: any) => item.product._id === product._id);
+          setIsInWishlist(isInList);
+        }
+      } catch (error) {
+        console.error('Error checking wishlist status:', error);
+      }
+    };
+
+    checkWishlistStatus();
+  }, [userData?._id, product._id]);
+
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!userData?.isLoggedIn) {
+      // Redirect to profile if not logged in
+      navigate("/profile");
+      return;
+    }
+
+    setWishlistLoading(true);
+    try {
+      if (isInWishlist) {
+        // Remove from wishlist
+        const response = await fetch('http://localhost:5002/api/wishlist/remove', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: userData._id, product: product._id }),
+        });
+
+        if (response.ok) {
+          setIsInWishlist(false);
+          window.dispatchEvent(new CustomEvent('wishlistUpdated'));
+        }
+      } else {
+        // Add to wishlist
+        const response = await fetch('http://localhost:5002/api/wishlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: userData._id, product: product._id }),
+        });
+
+        if (response.ok) {
+          setIsInWishlist(true);
+          window.dispatchEvent(new CustomEvent('wishlistUpdated'));
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   return (
     <article className="rounded-2xl overflow-hidden border border-gray-900 bg-gray-925 focus-within:ring-2 focus-within:ring-blue-600">
@@ -58,6 +126,23 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <span className="absolute top-2 left-2 text-[10px] font-bold bg-red-500 text-white px-2 py-1 rounded-full">
             TRY 'n BUY
           </span>
+          
+          {/* Wishlist Heart Button */}
+          <button
+            onClick={handleWishlistToggle}
+            disabled={wishlistLoading}
+            className={`absolute top-2 right-2 p-2 rounded-full transition-all ${
+              isInWishlist 
+                ? 'bg-red-500 text-white' 
+                : 'bg-white/20 text-white hover:bg-white/30'
+            } ${wishlistLoading ? 'opacity-50' : ''}`}
+            aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+          >
+            <Heart 
+              size={16} 
+              className={isInWishlist ? 'fill-current' : ''} 
+            />
+          </button>
         </div>
         <div className="p-3">
           <h3 className="text-sm font-semibold line-clamp-2 leading-snug">

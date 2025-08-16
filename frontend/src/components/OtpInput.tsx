@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
 interface OtpInputProps {
-  phoneNumber: string;
+  phoneNumber: string; // Keep for backward compatibility, but will contain email
   onBack: () => void;
   onVerify: (otp: string) => void;
   onResend: () => void;

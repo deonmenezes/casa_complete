@@ -9,6 +9,7 @@ import HomePage from './pages/HomePage';
 import CollectionPage from './pages/CollectionPage';
 import TrendsPage from './pages/TrendsPage';
 import BagPage from './pages/BagPage';
+import WishlistPage from './pages/WishlistPage';
 import ProductPage from './pages/ProductPage';
 import ProfilePage from './pages/ProfilePage';
 import ManageAccountPage from './pages/ManageAccountPage';
@@ -53,6 +54,7 @@ function AppRoutes() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/manage-account" element={<ManageAccountPage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order-success" element={<OrderSuccessPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />

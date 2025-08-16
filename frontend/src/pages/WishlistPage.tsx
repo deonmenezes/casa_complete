@@ -1,18 +1,23 @@
 // src/pages/WishlistPage.tsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import ProductCard from '../components/ProductCard'; // Make sure you have a reusable card
+import { useUser } from '../contexts/UserContext';
+import ProductCard from '../components/ProductCard';
 
 const WishlistPage: React.FC = () => {
+  const { userData } = useUser();
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const userId = JSON.parse(localStorage.getItem('user') || '{}')?._id;
-
   useEffect(() => {
     const fetchWishlist = async () => {
+      if (!userData?._id) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const res = await axios.get(`http://localhost:5002/api/wishlist/${userId}`);
+        const res = await axios.get(`http://localhost:5002/api/wishlist/${userData._id}`);
         setWishlist(res.data);
       } catch (error) {
         console.error('Error fetching wishlist:', error);
@@ -21,8 +26,8 @@ const WishlistPage: React.FC = () => {
       }
     };
 
-    if (userId) fetchWishlist();
-  }, [userId]);
+    fetchWishlist();
+  }, [userData?._id]);
 
   if (loading) return <div className="text-white p-4">Loading Wishlist...</div>;
 

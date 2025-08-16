@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share, Search, ShoppingBag, Shield, RotateCcw, Sparkles, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Search, ShoppingBag, Sparkles, Share, Heart } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
+import { useUser } from '../contexts/UserContext';
 
 interface Product {
   _id: string;
@@ -37,14 +38,16 @@ interface Product {
 const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>(); // Specify type for useParams
   const navigate = useNavigate();
-  // Removed wishlist context and hooks
   const { addToCart } = useCart();
+  const { user: userData } = useUser();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>(''); // Changed default to empty
   const [activeTab, setActiveTab] = useState<'SPECIFICATION' | 'DESCRIPTION'>('SPECIFICATION');
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   // Swipe state
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -57,6 +60,70 @@ const ProductPage: React.FC = () => {
       fetchProduct(id);
     }
   }, [id]);
+
+  // Check wishlist status when product or user changes
+  useEffect(() => {
+    if (product && userData?._id) {
+      checkWishlistStatus();
+    }
+  }, [product, userData?._id]);
+
+  const checkWishlistStatus = async () => {
+    if (!userData?._id || !product) return;
+    
+    try {
+      const res = await fetch(`http://localhost:5002/api/wishlist/${userData._id}`);
+      if (res.ok) {
+        const wishlist = await res.json();
+        const isInList = wishlist.some((item: any) => item.product._id === product._id);
+        setIsWishlisted(isInList);
+      }
+    } catch (error) {
+      console.error('Error checking wishlist status:', error);
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!userData?.isLoggedIn) {
+      navigate("/profile");
+      return;
+    }
+
+    if (!product) return;
+
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        // Remove from wishlist
+        const response = await fetch('http://localhost:5002/api/wishlist/remove', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: userData._id, product: product._id }),
+        });
+
+        if (response.ok) {
+          setIsWishlisted(false);
+          window.dispatchEvent(new CustomEvent('wishlistUpdated'));
+        }
+      } else {
+        // Add to wishlist
+        const response = await fetch('http://localhost:5002/api/wishlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: userData._id, product: product._id }),
+        });
+
+        if (response.ok) {
+          setIsWishlisted(true);
+          window.dispatchEvent(new CustomEvent('wishlistUpdated'));
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   const fetchProduct = async (id: string) => {
     try {
@@ -239,7 +306,21 @@ const ProductPage: React.FC = () => {
           </div>
           <div className="flex items-center space-x-4">
             <Search className="w-6 h-6 text-white" />
-            {/* Removed the Heart button for wishlist */}
+            <button
+              onClick={handleWishlistToggle}
+              disabled={wishlistLoading}
+              className={`p-2 rounded-full transition-all ${
+                isWishlisted 
+                  ? 'bg-red-500 text-white' 
+                  : 'bg-gray-800 text-white hover:bg-gray-700'
+              } ${wishlistLoading ? 'opacity-50' : ''}`}
+              aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            >
+              <Heart 
+                size={20} 
+                className={isWishlisted ? 'fill-current' : ''} 
+              />
+            </button>
             <ShoppingBag className="w-6 h-6 text-white" />
           </div>
         </div>
@@ -257,7 +338,22 @@ const ProductPage: React.FC = () => {
             <div className="absolute bottom-4 right-4 z-10 bg-black bg-opacity-60 text-white p-2 rounded-full">
               <Share className="w-5 h-5" />
             </div>
-            {/* Removed the Heart button from the main image */}
+            {/* Wishlist Heart Button */}
+            <button
+              onClick={handleWishlistToggle}
+              disabled={wishlistLoading}
+              className={`absolute top-4 right-4 z-10 p-2 rounded-full transition-all ${
+                isWishlisted 
+                  ? 'bg-red-500 text-white' 
+                  : 'bg-black bg-opacity-60 text-white hover:bg-opacity-80'
+              } ${wishlistLoading ? 'opacity-50' : ''}`}
+              aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            >
+              <Heart 
+                size={20} 
+                className={isWishlisted ? 'fill-current' : ''} 
+              />
+            </button>
             <img
               src={product.images[currentImageIndex]}
               alt={product.name}

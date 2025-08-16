@@ -46,12 +46,27 @@ const OnboardingPage: React.FC = () => {
   };
 
   const handleStep2Continue = async (preferredFits: string[]) => {
+    console.log('🎯 Step 2 Continue - Received preferredFits:', preferredFits);
+    
+    // First update the onboarding data
     updateOnboardingData({
       preferredFits
     });
-    await completeOnboarding();
-    // ENHANCED UX: Show success popup instead of immediately navigating to home
-    setShowSuccessPopup(true);
+    
+    console.log('📝 Updated onboarding data, current userData:', userData);
+    
+    // Use a more reliable approach - wait for next render cycle
+    await new Promise(resolve => setTimeout(resolve, 0));
+    
+    console.log('⏳ After timeout, userData:', userData);
+    
+    try {
+      await completeOnboarding();
+      // ENHANCED UX: Show success popup instead of immediately navigating to home
+      setShowSuccessPopup(true);
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+    }
   };
 
   /**
