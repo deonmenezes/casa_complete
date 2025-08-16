@@ -44,7 +44,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       if (!userData?._id) return;
       
       try {
-        const res = await fetch(`http://localhost:5002/api/wishlist/${userData._id}`);
+        const res = await fetch(`http://casa-backend-uf0h.onrender.com/api/wishlist/${userData._id}`);
         if (res.ok) {
           const wishlist = await res.json();
           const isInList = wishlist.some((item: any) => item.product._id === product._id);
@@ -71,7 +71,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     try {
       if (isInWishlist) {
         // Remove from wishlist
-        const response = await fetch('http://localhost:5002/api/wishlist/remove', {
+        const response = await fetch('http://casa-backend-uf0h.onrender.com/api/wishlist/remove', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user: userData._id, product: product._id }),
@@ -83,7 +83,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
       } else {
         // Add to wishlist
-        const response = await fetch('http://localhost:5002/api/wishlist/add', {
+        const response = await fetch('http://casa-backend-uf0h.onrender.com/api/wishlist/add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user: userData._id, product: product._id }),

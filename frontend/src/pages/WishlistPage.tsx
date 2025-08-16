@@ -17,7 +17,7 @@ const WishlistPage: React.FC = () => {
       }
 
       try {
-        const res = await axios.get(`http://localhost:5002/api/wishlist/${userData._id}`);
+        const res = await axios.get(`http://casa-backend-uf0h.onrender.com/api/wishlist/${userData._id}`);
         setWishlist(res.data);
       } catch (error) {
         console.error('Error fetching wishlist:', error);

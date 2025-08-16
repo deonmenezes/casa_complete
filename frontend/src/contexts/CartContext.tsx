@@ -74,7 +74,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [error, setError] = useState<string | null>(null);
 
   // API base URL
-  const API_BASE = 'http://localhost:5002/api/cart';
+  const API_BASE = 'http://casa-backend-uf0h.onrender.com/api/cart';
 
   // Get email (with fallback to phone)
   const getEmail = () => userData.email || userData.phoneNumber;

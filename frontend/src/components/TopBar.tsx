@@ -27,7 +27,7 @@ const TopBar: React.FC = () => {
       const userId = userData?._id;
       if (!userId) return;
       
-      const res = await fetch(`http://localhost:5002/api/wishlist/${userId}`);
+      const res = await fetch(`http://casa-backend-uf0h.onrender.com/api/wishlist/${userId}`);
       if (res.ok) {
         const data = await res.json();
         const ids = data.map((item: any) => item.product._id);

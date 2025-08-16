@@ -41,7 +41,7 @@ const ProductsPage: React.FC = () => {
 
   const fetchProductsByCategory = async (categoryId: string) => {
     try {
-      const response = await fetch(`http://localhost:5002/api/products/category?category=${categoryId}`);
+      const response = await fetch(`http://casa-backend-uf0h.onrender.com/api/products/category?category=${categoryId}`);
       const data = await response.json();
       setProducts(data);
     } catch (error) {
@@ -53,7 +53,7 @@ const ProductsPage: React.FC = () => {
 
   const fetchProductsByBrand = async (brandId: string) => {
     try {
-      const response = await fetch(`http://localhost:5002/api/products/brand?id=${brandId}`);
+      const response = await fetch(`http://casa-backend-uf0h.onrender.com/api/products/brand?id=${brandId}`);
       const data = await response.json();
       setProducts(data);
     } catch (error) {

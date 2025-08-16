@@ -296,7 +296,7 @@ function Deck() {
     try {
       if (!userData._id) return; // or navigate('/profile');
 
-      const response = await fetch(`http://localhost:5002/api/wishlist/${userData._id}`);
+      const response = await fetch(`http://casa-backend-uf0h.onrender.com/api/wishlist/${userData._id}`);
       if (response.ok) {
         const data = await response.json();
         const ids = data.map((item: any) => item.product._id);
@@ -371,7 +371,7 @@ function Deck() {
 
       if (isCurrentlyInWishlist) {
         const response = await fetch(
-          "http://localhost:5002/api/wishlist/remove",
+          "http://casa-backend-uf0h.onrender.com/api/wishlist/remove",
           {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
@@ -393,7 +393,7 @@ function Deck() {
         }
       } else {
         const response = await fetch(
-          "http://localhost:5002/api/wishlist/add",
+          "http://casa-backend-uf0h.onrender.com/api/wishlist/add",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
